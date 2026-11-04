@@ -152,7 +152,8 @@ Galloy inherits Halloy's IRC client and IRCv3 support.
 
 Galloy builds on [Halloy](https://github.com/squidowl/halloy), created and
 maintained by its upstream contributors, and the [Iced](https://github.com/iced-rs/iced)
-GUI library. The inherited app icon is by Rune Seir.
+GUI library. Galloy uses the [Blackberry bird icon](assets/galloy-blackberry.svg).
+Halloy's original app icon is by Rune Seir.
 
 Galloy and Halloy are licensed under **GPL-3.0-or-later**. See [LICENSE](LICENSE).
 The source archive attached to each Galloy preview includes its packaging script
