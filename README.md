@@ -1,5 +1,7 @@
 # Galloy
 
+![Galloy's Blackberry bird icon against a plum and coral sunset](assets/galloy-banner.png)
+
 An IRC client with graphical settings, built on [Halloy](https://github.com/squidowl/halloy).
 
 **Galloy is an unofficial, AI-assisted fork.** It adds a native Settings window
