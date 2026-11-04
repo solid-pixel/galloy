@@ -7,6 +7,7 @@ fn main() {
     let git_hash = ci_git_hash().or_else(local_git_hash);
 
     println!("cargo:rerun-if-changed=../VERSION");
+    println!("cargo:rerun-if-env-changed=GITHUB_SHA");
     println!("cargo:rustc-env=VERSION={VERSION}");
 
     if let Some(hash) = git_hash.as_ref() {
@@ -28,7 +29,7 @@ fn main() {
     };
     // If heads starts pointing at something else (different branch)
     // we need to return
-    let head = Path::new(&git_dir).join("HEAD");
+    let head = Path::new(git_dir.trim()).join("HEAD");
     if head.exists() {
         println!("cargo:rerun-if-changed={}", head.display());
     }
@@ -43,7 +44,7 @@ fn main() {
     else {
         return;
     };
-    let head_ref = Path::new(&git_dir).join(head_ref);
+    let head_ref = Path::new(git_dir.trim()).join(head_ref.trim());
     if head_ref.exists() {
         println!("cargo:rerun-if-changed={}", head_ref.display());
     }
