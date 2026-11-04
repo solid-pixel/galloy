@@ -12,7 +12,7 @@ use data::{
     target,
 };
 use iced::Length::Shrink;
-use iced::widget::text::{Ellipsis, LineHeight, Shaping, Wrapping};
+use iced::widget::text::{Ellipsis, LineHeight, Wrapping};
 use iced::widget::{
     Column, Row, Scrollable, Space, button, column, container, pane_grid, row,
     rule, scrollable, space, stack,
@@ -612,7 +612,6 @@ impl Sidebar {
                                         },
                                     ) => Some(
                                         text(format!("({kb})"))
-                                            .shaping(Shaping::Advanced)
                                             .size(key_bind_font_size)
                                             .style(theme::text::secondary)
                                             .font_maybe(
@@ -1477,7 +1476,6 @@ fn upstream_buffer_title<'a>(
                         .size(font_size)
                         .style(title_style)
                         .font_maybe(title_font.clone())
-                        .shaping(Shaping::Advanced)
                         .wrapping(Wrapping::None)
                         .ellipsis(Ellipsis::End)
                         .into(),
@@ -1487,7 +1485,6 @@ fn upstream_buffer_title<'a>(
                         .size(font_size)
                         .style(theme::text::secondary)
                         .font_maybe(title_font)
-                        .shaping(Shaping::Advanced)
                         .wrapping(Wrapping::None)
                         .ellipsis(Ellipsis::End)
                         .into(),
@@ -1499,7 +1496,6 @@ fn upstream_buffer_title<'a>(
                         .size(font_size)
                         .style(title_style)
                         .font_maybe(title_font)
-                        .shaping(Shaping::Advanced)
                         .wrapping(Wrapping::None)
                         .ellipsis(Ellipsis::End)
                         .into(),
@@ -1526,7 +1522,6 @@ fn upstream_buffer_title<'a>(
                     )
                     .style(title_style)
                     .font_maybe(title_font)
-                    .shaping(Shaping::Advanced)
                     .wrapping(Wrapping::None)
                     .ellipsis(Ellipsis::End)
                     .into(),
@@ -1545,7 +1540,6 @@ fn upstream_buffer_title<'a>(
                     )
                     .style(title_style)
                     .font_maybe(title_font)
-                    .shaping(Shaping::Advanced)
                     .wrapping(Wrapping::None)
                     .ellipsis(Ellipsis::End)
                     .into(),
@@ -2204,7 +2198,6 @@ fn internal_buffer_button<'a>(
             )
             .style(theme::text::primary)
             .font_maybe(theme::font_style::primary(theme).map(font::get))
-            .shaping(Shaping::Advanced)
             .wrapping(Wrapping::None)
             .ellipsis(Ellipsis::End),
     );

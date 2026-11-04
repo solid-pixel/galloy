@@ -432,6 +432,7 @@ pub enum Screen {
     Exit {
         pending_window_settings_save: bool,
         pending_dashboard_save: bool,
+        pending_marked_read_on_exit: bool,
         pending_server_removals: HashSet<Server>,
         buffers_context: BuffersContextSnapshot,
         pending_history_exit: bool,
@@ -997,6 +998,14 @@ impl Halloy {
             Message::System(system::Event::Resumed) => {
                 log::info!("system resumed");
                 self.power = system::State::Awake;
+                self.controllers.resumed();
+                Task::none()
+            }
+            Message::System(system::Event::NetworkChanged {
+                routable,
+                addresses,
+            }) => {
+                self.controllers.network_changed(routable, &addresses);
                 Task::none()
             }
             Message::Stream(update) => match update {
@@ -1199,14 +1208,13 @@ impl Halloy {
 
                     if let Screen::Exit {
                         pending_server_removals,
-                        buffers_context,
                         ..
                     } = &mut self.screen
                     {
                         pending_server_removals.remove(&server);
 
                         if pending_server_removals.is_empty() {
-                            self.storage.exit(buffers_context, &self.config);
+                            self.storage.exit(&self.config);
                         }
                     }
 
@@ -1719,8 +1727,20 @@ impl Halloy {
                     .into_iter()
                     .map(|event| match event {
                         storage::Event::History(message) => {
-                            let is_exit_message =
-                                matches!(message, storage::Message::Exited(..));
+                            enum ExitMessage {
+                                MarkedReadOnExit,
+                                Exited,
+                            }
+
+                            let exit_message = match message {
+                                storage::Message::MarkedReadOnExit(..) => {
+                                    Some(ExitMessage::MarkedReadOnExit)
+                                }
+                                storage::Message::Exited(..) => {
+                                    Some(ExitMessage::Exited)
+                                }
+                                _ => None,
+                            };
 
                             self.storage.update(
                                 message,
@@ -1729,20 +1749,45 @@ impl Halloy {
                                 &self.config,
                             );
 
-                            if is_exit_message {
+                            if let Some(exit_message) = exit_message {
                                 if let Screen::Exit {
                                     pending_window_settings_save,
                                     pending_dashboard_save,
+                                    pending_marked_read_on_exit,
+                                    pending_server_removals,
                                     pending_history_exit,
                                     ..
                                 } = &mut self.screen
                                 {
-                                    *pending_history_exit = false;
+                                    match exit_message {
+                                        ExitMessage::MarkedReadOnExit => {
+                                            *pending_marked_read_on_exit =
+                                                false;
 
-                                    if !*pending_window_settings_save
-                                        && !*pending_dashboard_save
-                                    {
-                                        return iced::exit();
+                                            self.controllers.exit(
+                                                &self
+                                                    .config
+                                                    .buffer
+                                                    .commands
+                                                    .quit
+                                                    .default_reason,
+                                            );
+
+                                            if pending_server_removals
+                                                .is_empty()
+                                            {
+                                                self.storage.exit(&self.config);
+                                            }
+                                        }
+                                        ExitMessage::Exited => {
+                                            *pending_history_exit = false;
+
+                                            if !*pending_window_settings_save
+                                                && !*pending_dashboard_save
+                                            {
+                                                return iced::exit();
+                                            }
+                                        }
                                     }
                                 } else {
                                     log::error!(
@@ -2085,13 +2130,6 @@ impl Halloy {
                 let runtime_task = (self.config.runtime != updated.runtime)
                     .then(|| configure_runtime(updated.runtime));
 
-                let removed_servers = self
-                    .servers
-                    .extract_if(|server, _| {
-                        !updated.servers.contains(&server.name)
-                    })
-                    .collect::<Vec<_>>();
-
                 for (server, config) in updated.servers.iter() {
                     let server = server.clone().into();
 
@@ -2122,8 +2160,6 @@ impl Halloy {
                                         .quit
                                         .default_reason,
                                 );
-                                self.servers.remove(&bouncer_network);
-                                self.clients.remove(&bouncer_network);
 
                                 continue;
                             };
@@ -2161,11 +2197,13 @@ impl Halloy {
                 // Load new notification sounds.
                 self.notifications.update(&updated);
 
-                self.config = updated;
-
-                for (server, _) in removed_servers {
+                for server in self
+                    .servers
+                    .keys()
+                    .filter(|server| !updated.servers.contains(&server.name))
+                {
                     self.controllers.end(
-                        &server,
+                        server,
                         &self
                             .config
                             .buffer
@@ -2175,6 +2213,8 @@ impl Halloy {
                             .clone(),
                     );
                 }
+
+                self.config = updated;
 
                 self.storage.reload_configuration(
                     &self.servers,
@@ -2285,6 +2325,7 @@ impl Halloy {
         self.screen = Screen::Exit {
             pending_window_settings_save: true,
             pending_dashboard_save: dashboard_save_task.is_some(),
+            pending_marked_read_on_exit: true,
             pending_server_removals,
             buffers_context,
             pending_history_exit: true,
@@ -2294,17 +2335,20 @@ impl Halloy {
             exit_tasks.push(dashboard_save_task);
         }
 
-        self.controllers
-            .exit(&self.config.buffer.commands.quit.default_reason);
-
+        // Exiting contains this chain, started here:
+        // - Mark as read (storage.mark_as_read_on_exit); performed first, while
+        //   clients are still connected, so MARKREADs are sent to servers
+        //   before QUITs are sent to servers
+        // - Quit all servers (controllers.exit); performed before history is
+        //   exited so servers are given a chance to respond and responses may
+        //   be saved to history (e.g. if the server ACKs the QUIT with a QUIT)
+        // - Exit history (storage.exit)
         if let Screen::Exit {
-            pending_server_removals,
-            buffers_context,
-            ..
+            buffers_context, ..
         } = &self.screen
-            && pending_server_removals.is_empty()
         {
-            self.storage.exit(buffers_context, &self.config);
+            self.storage
+                .mark_as_read_on_exit(buffers_context, &self.config);
         }
 
         Task::batch(exit_tasks)

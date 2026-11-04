@@ -517,11 +517,8 @@ impl TitleBar {
             },
             {
                 if maybe_buffer_kind.is_some() {
-                    let can_scroll_to_backlog = !(buffer
-                        .is_scrolled_to_bottom()
-                        .unwrap_or_default()
-                        && has_unread
-                        && config.buffer.backlog_separator.hide_when_all_read);
+                    let can_scroll_to_backlog = has_unread
+                        || !config.buffer.backlog_separator.hide_when_all_read;
                     let scroll_to_backlog_button =
                         button(center(icon::scroll_to_backlog()))
                             .padding(5)
@@ -899,7 +896,6 @@ fn query_title<'a>(
         .font_maybe(
             theme::font_style::nickname(theme, user_is_offline).map(font::get),
         )
-        .shaping(text::Shaping::Advanced)
         .wrapping(Wrapping::None)
         .ellipsis(text::Ellipsis::End);
 
@@ -954,7 +950,6 @@ fn query_title<'a>(
             .font_maybe(
                 theme::font_style::buffer_title_bar(theme).map(font::get)
             )
-            .shaping(text::Shaping::Advanced)
             .wrapping(Wrapping::None)
             .ellipsis(text::Ellipsis::End),
     ]

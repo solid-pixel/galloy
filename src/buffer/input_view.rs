@@ -23,7 +23,7 @@ use iced::Length::Fit;
 use iced::advanced::widget::Tree;
 use iced::advanced::{Layout, Shell, mouse};
 use iced::keyboard::{Key, key};
-use iced::widget::text::{Shaping, Wrapping};
+use iced::widget::text::Wrapping;
 use iced::widget::{
     self, Space, button, center, column, container, mouse_area, operation, row,
     rule, text_editor,
@@ -82,7 +82,7 @@ pub enum Event {
         upload_ids: Vec<u32>,
         abort_registrations: Vec<futures::future::AbortRegistration>,
     },
-    NavigateFocus(FocusDirection),
+    NavigateFocus(FocusDirection, bool),
     ExitFocus,
     FocusAction(FocusAction),
 }
@@ -130,7 +130,7 @@ pub enum Message {
         to_nick: Nick,
     },
     ClearDraftReply,
-    NavigateFocus(FocusDirection),
+    NavigateFocus(FocusDirection, bool),
     ExitFocus,
     FocusAction(FocusAction),
 }
@@ -377,7 +377,6 @@ pub fn view<'a>(
                             title,
                             keybind.map(|kb| {
                                 text(format!("({kb})"))
-                                    .shaping(Shaping::Advanced)
                                     .size(theme::TEXT_SIZE - 2.0)
                                     .style(theme::text::secondary)
                                     .font_maybe(
@@ -1413,8 +1412,8 @@ impl State {
                 self.spinner_hovered = hovered;
                 (Task::none(), None)
             }
-            Message::NavigateFocus(direction) => {
-                (Task::none(), Some(Event::NavigateFocus(direction)))
+            Message::NavigateFocus(direction, repeat) => {
+                (Task::none(), Some(Event::NavigateFocus(direction, repeat)))
             }
             Message::ExitFocus => (self.focus(), Some(Event::ExitFocus)),
             Message::FocusAction(action) => {
