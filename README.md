@@ -20,9 +20,12 @@ Halloy is an open-source IRC client for macOS, Windows, and Linux, focused on be
 
 Documentation: [halloy.chat](https://halloy.chat)
 
-Join **#halloy** on libera.chat if you have questions or need help.
+For Galloy questions or bugs, use [this fork's issue tracker](https://github.com/solid-pixel/galloy/issues).
 
 ## Installation
+
+Download Galloy from [this fork's releases](https://github.com/solid-pixel/galloy/releases).
+The package links below are for upstream Halloy.
 
 [Installation documentation](https://halloy.chat/installation.html)
 
@@ -85,7 +88,8 @@ We strive to be a leading irc client with a rich IRCv3 feature set. Currently su
 
 ## Contributing
 
-See the [contributing guide](https://halloy.chat/contributing) to get started.
+For Galloy changes, open an issue or pull request on this fork.
+See [Halloy's contributing guide](https://halloy.chat/contributing) for upstream contributions.
 
 ## License
 
@@ -93,13 +97,16 @@ Halloy is released under the GPL-3.0 License. For more details, see the [LICENSE
 
 ## Code signing policy
 
-Read our [code signing policy](./CODE_SIGNING_POLICY.md).
+Galloy's macOS previews are signed ad hoc and are not notarized by Apple.
+Each release lists its signing and verification details.
 
-Free code signing provided by [SignPath.io](https://signpath.io/), certificate by [SignPath Foundation](https://signpath.org/?utm_source=foundation&utm_medium=github&utm_campaign=gitextension).
+Upstream Halloy has a separate [code signing policy](./CODE_SIGNING_POLICY.md),
+with signing provided by [SignPath.io](https://signpath.io/) and a certificate
+from [SignPath Foundation](https://signpath.org/?utm_source=foundation&utm_medium=github&utm_campaign=gitextension).
 
 ## Contact
 
-For any questions, suggestions, or issues, please open an issue on the [GitHub repository](https://github.com/squidowl/halloy/issues).
+For questions, suggestions, or issues with Galloy, please open an issue on the [Galloy repository](https://github.com/solid-pixel/galloy/issues).
 
 <a href="https://github.com/iced-rs/iced">
   <img src="https://gist.githubusercontent.com/hecrj/ad7ecd38f6e47ff3688a38c79fd108f0/raw/74384875ecbad02ae2a926425e9bcafd0695bade/color.svg" width="130px">
