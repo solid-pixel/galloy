@@ -641,7 +641,7 @@ impl Sidebar {
 
                     match menu {
                         Menu::QuitApplication => context_button(
-                            text("Quit Halloy"),
+                            text("Quit Galloy"),
                             Some(&keyboard.quit_application),
                             icon::quit(),
                             Message::QuitApplication,
@@ -782,7 +782,7 @@ impl Sidebar {
                             Message::OpenReleaseWebsite,
                         ),
                         Menu::Version => context_button(
-                            text("About Halloy"),
+                            text("About Galloy"),
                             None,
                             icon::about(),
                             Message::OpenAbout {

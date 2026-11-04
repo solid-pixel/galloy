@@ -63,7 +63,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let version = args.next().is_some_and(|s| s == "--version" || s == "-V");
 
     if version {
-        println!("halloy {}", environment::formatted_version());
+        println!("galloy {}", environment::formatted_version());
 
         return Ok(());
     }
@@ -83,7 +83,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .open(environment::data_dir().join("history.lock"))?;
     instance_lock.try_lock().map_err(|error| {
         format!(
-            "Cannot start Halloy; another instance may be using the same data directory: {error}"
+            "Cannot start Galloy; another instance may be using the same data directory: {error}"
         )
     })?;
 
@@ -628,9 +628,9 @@ impl Halloy {
             .as_ref()
             .is_some_and(|settings| settings.window == window_id)
         {
-            return "Settings – Halloy".into();
+            return "Settings – Galloy".into();
         }
-        let default = "Halloy".to_owned();
+        let default = "Galloy".to_owned();
         let s = match &self.screen {
             Screen::Dashboard(dashboard) => {
                 if let Some(buffer_name) =
@@ -647,7 +647,7 @@ impl Halloy {
             Screen::Welcome(_) => "Welcome".to_owned(),
             Screen::Exit { .. } => return default,
         };
-        format!("{s} – Halloy")
+        format!("{s} – Galloy")
     }
 
     fn update(&mut self, message: Message) -> Task<Message> {
@@ -703,7 +703,7 @@ impl Halloy {
                 }
                 Err(error) => {
                     if let Some(settings) = &mut self.settings_window {
-                        settings.application_failed(format!("Saved, but Halloy could not apply the settings: {error}"));
+                        settings.application_failed(format!("Saved, but Galloy could not apply the settings: {error}"));
                     }
                     Task::none()
                 }

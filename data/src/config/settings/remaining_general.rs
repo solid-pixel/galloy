@@ -103,7 +103,7 @@ pub fn schema() -> Vec<Spec> {
         "macOS window decorations",
         boolean,
         "true",
-        "Restart Halloy to use window and rendering changes."
+        "Restart Galloy to use window and rendering changes."
     );
     add!(
         General,
@@ -199,7 +199,7 @@ pub fn schema() -> Vec<Spec> {
             }
         ]),
         "\"best\"",
-        "Restart Halloy to use rendering changes. Backend availability depends on your platform."
+        "Restart Galloy to use rendering changes. Backend availability depends on your platform."
     );
     add!(
         General,
@@ -291,7 +291,7 @@ pub fn schema() -> Vec<Spec> {
             }
         ]),
         "\"debug\"",
-        "Restart Halloy to use logging changes."
+        "Restart Galloy to use logging changes."
     );
     add!(
         General,
@@ -848,7 +848,7 @@ impl Draft {
             "Default quit message",
             Editor::OptionalText,
             "",
-            "Default uses Halloy’s normal quit behavior. An empty message also uses the default.",
+            "Default uses Galloy’s normal quit behavior. An empty message also uses the default.",
         );
         add(
             Area::Commands,

@@ -654,7 +654,7 @@ impl Draft {
         if proxy && selection == "tor" && !cfg!(feature = "tor") {
             return Err(ValidationError {
                 path: selector.path,
-                message: "This Halloy build does not include Tor support."
+                message: "This Galloy build does not include Tor support."
                     .into(),
             });
         }
@@ -1269,7 +1269,7 @@ impl Draft {
                 "ghost_sequence",
                 "Ghost commands",
                 Kind::List,
-                "Commands run in order; Halloy appends nickname and password."
+                "Commands run in order; Galloy appends nickname and password."
             );
             self.sasl(base, "SASL", "sasl", false);
             c!(
@@ -1477,7 +1477,7 @@ impl Draft {
             "do_not_request",
             "Do not request capabilities",
             Kind::List,
-            "Use capability names supported by Halloy, separated with semicolons."
+            "Use capability names supported by Galloy, separated with semicolons."
         );
         f!(
             "Capabilities and delivery",

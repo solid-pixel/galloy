@@ -1,8 +1,12 @@
-# Halloy - IRC Client
+# Galloy - IRC Client
 
-This fork adds a native **Settings** window for Networks, Appearance, Navigation,
-Chat display, and Sidebar, using Halloy's existing design and `config.toml`
-format. Open it from the user menu,
+Galloy is an unofficial, AI-assisted fork of [Halloy](https://github.com/squidowl/halloy)
+with a native **Settings** window for its configuration options. It follows Halloy's
+existing design and `config.toml` format.
+
+Download the macOS preview from [Galloy releases](https://github.com/solid-pixel/galloy/releases).
+
+Open **Settings** from the user menu,
 the command bar, or **⌘,** on macOS (**Ctrl+,** elsewhere).
 See the [settings guide](docs/guides/settings-gui.md) for supported options,
 saving behavior, and development commands. Official Halloy packages linked

@@ -35,7 +35,7 @@ const CARD_ACTION: &[Choice] = &[
         value: "\"open-image-url\"",
     },
     Choice {
-        label: "Preview image in Halloy",
+        label: "Preview image in Galloy",
         value: "\"preview\"",
     },
 ];

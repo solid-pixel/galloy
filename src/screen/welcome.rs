@@ -90,7 +90,7 @@ impl Welcome {
             .spacing(1)
             .push(image(self.logo.clone()).width(128))
             .push(space::vertical().height(10))
-            .push(text("Welcome to Halloy!").font(font::PRIMARY_BOLD.clone()))
+            .push(text("Welcome to Galloy!").font(font::PRIMARY_BOLD.clone()))
             .push(space::vertical().height(4))
             .push(text("Set up your networks and appearance in Settings."))
             .push(row![

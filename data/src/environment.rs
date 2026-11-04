@@ -4,13 +4,16 @@ use std::path::PathBuf;
 pub const VERSION: &str = env!("VERSION");
 pub const GIT_HASH: Option<&str> = option_env!("GIT_HASH");
 pub const CONFIG_FILE_NAME: &str = "config.toml";
+#[cfg(target_os = "macos")]
+pub const APPLICATION_ID: &str = "com.solid-pixel.galloy";
+#[cfg(not(target_os = "macos"))]
 pub const APPLICATION_ID: &str = "org.squidowl.halloy";
 pub const WIKI_WEBSITE: &str = "https://halloy.chat";
 pub const THEME_WEBSITE: &str = "https://themes.halloy.chat";
 pub const EMAIL: &str = "contact@halloy.chat";
 pub const RELEASE_WEBSITE: &str =
-    "https://github.com/squidowl/halloy/releases/latest";
-pub const SOURCE_WEBSITE: &str = "https://github.com/squidowl/halloy/";
+    "https://github.com/solid-pixel/galloy/releases";
+pub const SOURCE_WEBSITE: &str = "https://github.com/solid-pixel/galloy/";
 
 pub fn formatted_version() -> String {
     let hash = GIT_HASH

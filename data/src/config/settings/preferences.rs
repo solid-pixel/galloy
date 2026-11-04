@@ -241,7 +241,7 @@ pub fn schema() -> Vec<Spec> {
                     optional: true
                 },
                 "",
-                "Leave empty for Halloy's default."
+                "Leave empty for Galloy's default."
             )
         };
     }
@@ -750,7 +750,7 @@ pub fn schema() -> Vec<Spec> {
             Chat,
             "Read markers",
             "buffer.mark_as_read.on_application_exit",
-            "Mark as read when quitting Halloy",
+            "Mark as read when quitting Galloy",
             "false"
         ),
         c!(

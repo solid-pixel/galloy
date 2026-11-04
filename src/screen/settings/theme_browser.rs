@@ -372,7 +372,7 @@ impl Browser {
         column![
             heading,
             text(
-                "Select to preview throughout Halloy. Apply saves your choice."
+                "Select to preview throughout Galloy. Apply saves your choice."
             )
             .style(secondary_text),
             controls,

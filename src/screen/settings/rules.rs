@@ -71,7 +71,7 @@ impl Settings {
                     }
                 }
                 Area::Keyboard => {
-                    "Use command+k or ctrl+shift+k. Separate alternative bindings with semicolons. Clear disables an action; Default restores Halloy’s platform default. Explicit bindings can override Cmd/Ctrl+, for Settings."
+                    "Use command+k or ctrl+shift+k. Separate alternative bindings with semicolons. Clear disables an action; Default restores Galloy’s platform default. Explicit bindings can override Cmd/Ctrl+, for Settings."
                 }
             };
             content =

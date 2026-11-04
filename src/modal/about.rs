@@ -219,6 +219,8 @@ impl About {
 
         let content = column![
             logo,
+            text("Galloy").font(font::PRIMARY_BOLD.clone()),
+            text("An unofficial, AI-assisted fork of Halloy"),
             column![
                 item("Version", &self.version, Field::Version),
                 item("Commit", &self.commit, Field::Commit),
@@ -229,7 +231,7 @@ impl About {
                 container(rule::horizontal(1))
                     .padding([6, 0])
                     .width(Length::Fill),
-                item("Contact", data::environment::EMAIL, Field::Mail),
+                item("Halloy contact", data::environment::EMAIL, Field::Mail),
             ],
             column![copy_all, close]
                 .spacing(8)

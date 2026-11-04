@@ -589,7 +589,7 @@ impl Settings {
                         }
                         self.pending_themes.clear();
                         self.status = Some(if self.restart_needed {
-                            "Saved. Restart Halloy to apply startup settings."
+                            "Saved. Restart Galloy to apply startup settings."
                         } else if networks_changed {
                             "Saved. Reconnect existing networks to use connection changes."
                         } else { "Settings applied." }.into());
@@ -1956,7 +1956,7 @@ impl Settings {
         }
         theme_rows.push(column![
             action("Browse and download themes", Message::BrowseThemes),
-            text("Theme selections preview throughout Halloy. Apply saves your choice; Revert restores the saved appearance.").size(12).style(theme::text::secondary)
+            text("Theme selections preview throughout Galloy. Apply saves your choice; Revert restores the saved appearance.").size(12).style(theme::text::secondary)
         ].spacing(6).into());
         theme_rows.push(
             remaining_display::theme_lists(
@@ -1970,7 +1970,7 @@ impl Settings {
         );
         let mut font_rows = vec![
             self.fonts.view(font_picker::Target::Main, "Font family", &a.font_family, Field::FontFamily.id()),
-            column![self.mark_error(Field::LineHeight, self.mark_error(Field::FontSize, labelled_width("Text size", row![container(input_field("13", &a.font_size, Field::FontSize, false)).width(88), text("Line height"), container(input_field("1.3", &a.line_height, Field::LineHeight, false)).width(88)].spacing(12).align_y(Alignment::Center).into(), 320.0))), text("Font changes apply immediately. Empty fields use Halloy’s defaults.").size(12).style(theme::text::secondary)].spacing(4).into(),
+            column![self.mark_error(Field::LineHeight, self.mark_error(Field::FontSize, labelled_width("Text size", row![container(input_field("13", &a.font_size, Field::FontSize, false)).width(88), text("Line height"), container(input_field("1.3", &a.line_height, Field::LineHeight, false)).width(88)].spacing(12).align_y(Alignment::Center).into(), 320.0))), text("Font changes apply immediately. Empty fields use Galloy’s defaults.").size(12).style(theme::text::secondary)].spacing(4).into(),
         ];
         for (index, field) in draft
             .preferences

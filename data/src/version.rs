@@ -2,7 +2,7 @@ use crate::config;
 use crate::environment::VERSION;
 
 const LATEST_REMOTE_RELEASE_URL: &str =
-    "https://api.github.com/repos/squidowl/halloy/releases/latest";
+    "https://api.github.com/repos/solid-pixel/galloy/releases/latest";
 
 #[derive(Debug, Clone)]
 pub struct Version {

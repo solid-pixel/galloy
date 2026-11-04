@@ -389,7 +389,7 @@ impl Theme {
 impl std::fmt::Display for Application {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Application::Quit => write!(f, "Quit Halloy"),
+            Application::Quit => write!(f, "Quit Galloy"),
             Application::ToggleFullscreen => write!(f, "Fullscreen"),
             Application::ToggleSidebarVisibility => write!(f, "Toggle Sidebar"),
         }

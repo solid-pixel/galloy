@@ -120,7 +120,7 @@ pub fn schema() -> Vec<Spec> {
             "actions.notification.default",
             "Clicking notifications",
             Kind::Choice(
-                choices!("Activate Halloy" => "\"activate-application\"", "Open the conversation" => "\"open-buffer\""),
+                choices!("Activate Galloy" => "\"activate-application\"", "Open the conversation" => "\"open-buffer\""),
             ),
             "\"activate-application\"",
             "",
@@ -132,7 +132,7 @@ pub fn schema() -> Vec<Spec> {
             "Timestamp context menu format",
             Kind::Text,
             "\"%x\"",
-            "Use Halloy's strftime format syntax.",
+            "Use Galloy's strftime format syntax.",
         ),
         spec(
             Chat,
