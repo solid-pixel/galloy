@@ -7,6 +7,8 @@ use iced::{Event, Length, Task, keyboard};
 use super::{Message, labelled, style};
 use crate::widget::{Element, decorate, text, text_input};
 
+mod preview;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Target {
     Main,
@@ -116,7 +118,7 @@ impl State {
                 .padding(6)
                 .menu_height(Length::Fixed(240.0))
                 .input_style(style::input)
-                .menu_style(style::menu)
+                .menu_style(preview::menu_style)
                 .into();
                 // Query actual widget focus: Tab can focus a combo box without
                 // Iced emitting on_open. Keep the wrapper present in every render.
@@ -180,6 +182,7 @@ impl State {
                         );
                     },
                 )
+                .overlay(preview::overlay)
                 .into()
             };
         let reset = super::keyboard::button("Default")

@@ -249,7 +249,7 @@ impl<
         U,
     >
     where
-        T: self::Operate<'a, Message, Theme, Renderer, U>,
+        T: self::Overlay<'a, Message, Theme, Renderer, U>,
     {
         Decorate {
             inner: self.inner,

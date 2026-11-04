@@ -93,6 +93,7 @@ Gallery requests use the current global proxy setting. With Halloy's built-in
 Tor proxy, gallery requests are unavailable; they do not fall back to a direct connection.
 
 Font family and code font have searchable menus of installed font families.
+Each result shows its name in that font, so you can compare faces before applying.
 Type to filter, then select a result with the mouse or arrow keys and Enter.
 Searching does not change your draft. **Default** restores the main font default
 or makes the code font inherit the main font. Reopen Settings to refresh the list
