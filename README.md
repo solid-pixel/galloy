@@ -1,43 +1,109 @@
-# Galloy - IRC Client
+# Galloy
 
-Galloy is an unofficial, AI-assisted fork of [Halloy](https://github.com/squidowl/halloy)
-with a native **Settings** window for its configuration options. It follows Halloy's
-existing design and `config.toml` format.
+An IRC client with graphical settings, built on [Halloy](https://github.com/squidowl/halloy).
 
-Download the macOS preview from [Galloy releases](https://github.com/solid-pixel/galloy/releases).
+**Galloy is an unofficial, AI-assisted fork.** It adds a native Settings window
+while following Halloy's design and configuration format. It is maintained
+independently of the upstream Halloy project.
 
-Open **Settings** from the user menu,
-the command bar, or **⌘,** on macOS (**Ctrl+,** elsewhere).
-See the [settings guide](docs/guides/settings-gui.md) for supported options,
-saving behavior, and development commands. Official Halloy packages linked
-below do not include this fork's settings GUI.
+[Download the macOS preview](https://github.com/solid-pixel/galloy/releases)
+· [Settings guide](docs/guides/settings-gui.md)
+· [Report an issue](https://github.com/solid-pixel/galloy/issues)
 
-<img src="./assets/banner.png" alt="banner" title="Icon by Rune Seir">
+![Galloy's Appearance settings, with compact grouped controls for themes and fonts](assets/settings-gui.png)
 
-![halloy](./assets/animation.gif)
+## What Galloy adds
 
-Halloy is an open-source IRC client for macOS, Windows, and Linux, focused on being simple and fast.
+- **Graphical configuration:** edit networks, proxies, appearance, navigation,
+  chat display, sidebar, notifications, highlights, shortcuts, commands,
+  previews, transfers, uploads, and general preferences.
+- **Live theme previews:** browse the Halloy community theme gallery and preview
+  a selection across the app before saving. Choose separate light and dark
+  themes to follow your system appearance.
+- **Installed font pickers:** search your fonts and see each name rendered in
+  its own face. Apply font changes without restarting.
+- **Compact settings:** vertical navigation, grouped rows, controls sized for
+  their contents, and a separate network list.
+- **Configuration-aware saving:** validate changes before applying, retain
+  other settings and TOML comments, and keep a backup of the previous file.
+  The text-based Config Editor remains available.
 
-Documentation: [halloy.chat](https://halloy.chat)
+See the [Settings guide](docs/guides/settings-gui.md) for behavior and limitations,
+and the [field coverage checklist](docs/guides/settings-gui-coverage.md) for the
+configuration options exposed in the GUI.
 
-For Galloy questions or bugs, use [this fork's issue tracker](https://github.com/solid-pixel/galloy/issues).
+## Try the macOS preview
 
-## Installation
+The current packaged preview is a universal macOS build for Apple silicon and
+Intel. Downloads, source archives, checksums, and verification details are on the
+[releases page](https://github.com/solid-pixel/galloy/releases).
 
-Download Galloy from [this fork's releases](https://github.com/solid-pixel/galloy/releases).
-The package links below are for upstream Halloy.
+1. Back up your existing `config.toml` and quit Halloy if it is running.
+2. Download and open the Galloy disk image, then drag **Galloy** to **Applications**.
+3. Launch Galloy and open **Settings** with **⌘,**, from the user menu, or from
+   the welcome screen.
+4. Make your changes and press **Apply** to save. **Revert changes** restores
+   the saved configuration.
 
-[Installation documentation](https://halloy.chat/installation.html)
+The macOS preview is signed ad hoc and **is not notarized by Apple**. macOS may
+block its first launch; see the release notes for opening instructions.
+Upstream Halloy packages from package managers and app stores do not include
+Galloy's Settings GUI.
 
-<a href="https://repology.org/project/halloy/versions">
-    <img src="https://repology.org/badge/vertical-allrepos/halloy.svg" alt="Packaging status">
-</a>
+## Existing Halloy configurations
 
-Halloy is also available from [Flathub](https://flathub.org/apps/org.squidowl.halloy) and [Snap Store](https://snapcraft.io/halloy).
+Galloy uses Halloy's existing `config.toml`, theme files, and default configuration
+and history locations. It can open your existing setup without a migration.
+Because the two apps share these locations, quit one before using the other.
 
-## IRCv3 Capabilities
+Settings saves a `config.toml.settings-backup` beside the configuration file.
+If another editor changes the file while Settings is open, applying is refused
+until you reload the saved configuration. Some server changes require a
+reconnection, and startup settings such as the renderer require a restart.
+The GUI explains these cases.
 
-We strive to be a leading irc client with a rich IRCv3 feature set. Currently supported capabilities:
+To try Galloy with separate configuration and history, see the
+[isolated configuration instructions](docs/guides/settings-gui.md#development)
+using `HALLOY_PORTABLE_DIR`. The environment variable retains its Halloy name
+for compatibility.
+
+## Project status and AI assistance
+
+Galloy is an experimental fork developed with assistance from AI coding agents.
+The graphical settings and fork changes are AI-assisted work; the underlying
+IRC client is the work of the Halloy project and its contributors.
+
+Each prerelease documents the checks performed and any testing limitations.
+Please report bugs and feature requests on the
+[Galloy issue tracker](https://github.com/solid-pixel/galloy/issues), including
+the release version and steps to reproduce. Remove passwords, tokens, and other
+private details from any configuration excerpts or logs you share.
+
+## Documentation and development
+
+- [Settings guide](docs/guides/settings-gui.md): controls, saving behavior, and
+  development commands.
+- [Field coverage checklist](docs/guides/settings-gui-coverage.md): GUI coverage
+  of the configuration schema.
+- [Upstream Halloy documentation](https://halloy.chat): IRC usage and the shared
+  configuration format.
+
+With Rust installed, run from a checkout:
+
+```sh
+cargo run --profile ci
+```
+
+For Galloy contributions, open an issue or pull request on this fork.
+For contributions to Halloy itself, follow
+[Halloy's contributing guide](https://halloy.chat/contributing).
+
+## IRC support
+
+Galloy inherits Halloy's IRC client and IRCv3 support.
+
+<details>
+<summary>Supported IRCv3 capabilities</summary>
 
 - [account-notify](https://ircv3.net/specs/extensions/account-notify)
 - [away-notify](https://ircv3.net/specs/extensions/away-notify)
@@ -80,34 +146,14 @@ We strive to be a leading irc client with a rich IRCv3 feature set. Currently su
 - [`soju.im/bouncer-networks`](https://soju.im/bouncer-networks)
 - [`soju.im/filehost`](https://soju.im/filehost)
 
-## Why?
+</details>
 
-<a href="https://xkcd.com/1782/">
-  <img src="https://imgs.xkcd.com/comics/team_chat.png" title="2078: He announces that he's finally making the jump from screen+irssi to tmux+weechat.">
-</a>
+## Credits and license
 
-## Contributing
+Galloy builds on [Halloy](https://github.com/squidowl/halloy), created and
+maintained by its upstream contributors, and the [Iced](https://github.com/iced-rs/iced)
+GUI library. The inherited app icon is by Rune Seir.
 
-For Galloy changes, open an issue or pull request on this fork.
-See [Halloy's contributing guide](https://halloy.chat/contributing) for upstream contributions.
-
-## License
-
-Halloy is released under the GPL-3.0 License. For more details, see the [LICENSE](LICENSE) file.
-
-## Code signing policy
-
-Galloy's macOS previews are signed ad hoc and are not notarized by Apple.
-Each release lists its signing and verification details.
-
-Upstream Halloy has a separate [code signing policy](./CODE_SIGNING_POLICY.md),
-with signing provided by [SignPath.io](https://signpath.io/) and a certificate
-from [SignPath Foundation](https://signpath.org/?utm_source=foundation&utm_medium=github&utm_campaign=gitextension).
-
-## Contact
-
-For questions, suggestions, or issues with Galloy, please open an issue on the [Galloy repository](https://github.com/solid-pixel/galloy/issues).
-
-<a href="https://github.com/iced-rs/iced">
-  <img src="https://gist.githubusercontent.com/hecrj/ad7ecd38f6e47ff3688a38c79fd108f0/raw/74384875ecbad02ae2a926425e9bcafd0695bade/color.svg" width="130px">
-</a>
+Galloy and Halloy are licensed under **GPL-3.0-or-later**. See [LICENSE](LICENSE).
+The source archive attached to each Galloy preview includes its packaging script
+and build instructions.
