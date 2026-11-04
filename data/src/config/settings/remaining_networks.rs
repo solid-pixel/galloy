@@ -1290,6 +1290,7 @@ impl Draft {
                 ("reconnect_delay", "Reconnect delay (seconds)", 1, i64::MAX),
                 ("max_connection_attempts", "Connection attempts", 0, 65535),
                 ("who_poll_interval", "WHO interval (seconds)", 1, 3600),
+                ("who_poll_in_flight_limit", "Concurrent WHO requests", 1, 64),
                 (
                     "anti_flood.rate",
                     "Flood interval (milliseconds)",
@@ -1308,10 +1309,14 @@ impl Draft {
                     } else {
                         Kind::Integer(min, max)
                     },
-                    if key == "max_connection_attempts" {
-                        "Choose Unlimited, or set a positive attempt count."
-                    } else {
-                        ""
+                    match key {
+                        "max_connection_attempts" => {
+                            "Choose Unlimited, or set a positive attempt count."
+                        }
+                        "who_poll_in_flight_limit" => {
+                            "Defaults to 8. Applies only when the server enables no-implicit-names."
+                        }
+                        _ => "",
                     },
                 );
             }
@@ -2117,6 +2122,8 @@ mod tests {
         let (_, mut draft) = draft("");
         for (key, bad, good) in [
             ("who_poll_interval", "0", "1"),
+            ("who_poll_in_flight_limit", "0", "1"),
+            ("who_poll_in_flight_limit", "65", "64"),
             ("anti_flood.rate", "99", "100"),
             ("anti_flood.burst", "33", "32"),
             ("max_connection_attempts", "65536", "unlimited"),

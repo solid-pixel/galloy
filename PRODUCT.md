@@ -99,7 +99,7 @@ part of this request. The fork keeps the upstream license and attribution.
 
 ## Configuration coverage
 
-The [model checklist](docs/guides/settings-gui-coverage.md) inventories all 527
+The [model checklist](docs/guides/settings-gui-coverage.md) inventories all 528
 public configuration model fields, including nested containers and runtime
 projections, plus tagged formats and bouncer overrides. Runtime-only server order
 has no numeric setting. Platform/build availability remains explicit.
