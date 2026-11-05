@@ -67,7 +67,7 @@ jobs:
       matrix:
         target:
           - target: macos
-            os: macos-latest
+            os: macos-15-intel
             rustflags: ""
           - target: windows
             os: windows-latest
@@ -92,8 +92,8 @@ jobs:
         with:
           toolchain: stable minus 3 releases
           components: clippy
-          # Intel macOS is cross-checked on Apple Silicon (as shipped in the universal binary).
-          targets: ${{ matrix.target.target == 'macos' && 'x86_64-apple-darwin' || '' }}
+          # Apple Silicon is cross-checked on Intel (both are shipped in the universal binary).
+          targets: ${{ matrix.target.target == 'macos' && 'aarch64-apple-darwin' || '' }}
 
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
@@ -105,9 +105,9 @@ jobs:
       - run: cargo version
       - name: Clippy
         run: cargo clippy --locked --profile ci --workspace --all-targets -- -D warnings
-      - name: Clippy (x86_64-apple-darwin)
+      - name: Clippy (aarch64-apple-darwin)
         if: matrix.target.target == 'macos'
-        run: cargo clippy --locked --profile ci --workspace --all-targets --target x86_64-apple-darwin -- -D warnings
+        run: cargo clippy --locked --profile ci --workspace --all-targets --target aarch64-apple-darwin -- -D warnings
 
       - uses: taiki-e/install-action@5488ac5a951645ce95062214902ac4b6bc1a1037 # v2
         with:
