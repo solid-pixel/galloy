@@ -1,6 +1,6 @@
 # Themes
 
-Theme settings for Halloy.
+Theme settings for Galloy.
 
 ## `theme`
 
@@ -8,9 +8,9 @@ Theme settings for Halloy.
 `theme` is a root key, so it must be placed before every section.
 :::
 
-Specify the theme name(s) to use. The theme must correspond to a file in the `themes` folder of your Halloy [configuration directory](/configuration#directory). The default theme in Halloy is [Ferra](https://github.com/casperstorm/ferra/).
+Specify the theme name(s) to use. The theme must correspond to a file in the `themes` folder of your Galloy [configuration directory](/configuration#directory). The default theme in Galloy is [Ferra](https://github.com/casperstorm/ferra/).
 
-When multiple themes are specified, Halloy will randomly select one each time the application starts. When a dynamic theme is used, Halloy will match the appearance of the OS.
+When multiple themes are specified, Galloy will randomly select one each time the application starts. When a dynamic theme is used, Galloy will match the appearance of the OS.
 
 ```toml
 # Type: string, array of strings, or object
@@ -27,6 +27,6 @@ theme = { light = "ferra-light", dark = "ferra" }
 theme = { light = ["ferra-light", "booberry-light"], dark = ["ferra", "booberry"] }
 ```
 
-Discover community created themes for Halloy at [https://themes.halloy.chat](https://themes.halloy.chat).
+Galloy uses the Halloy community theme gallery at [https://themes.halloy.chat](https://themes.halloy.chat).
 
 What to create your own theme? See [Custom Themes](/guides/custom-themes) guide

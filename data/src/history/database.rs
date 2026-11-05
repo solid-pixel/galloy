@@ -1480,7 +1480,7 @@ impl Write<'_> {
                 .optional()?,
             _ => None,
         };
-        // msgid is not unique: Halloy's historical/echo matching decides which
+        // msgid is not unique: the client's historical/echo matching decides which
         // row is replaced, not an SQL uniqueness constraint.
         let changed = self.transaction.prepare_cached(
             "INSERT INTO message(id, history, time, time_from_server, msgid, referenceable, in_channel_monitor, content)

@@ -54,7 +54,7 @@ If you leave `port` unset, default ports will be chosen based on `use_tls` and
 
 ### `use_tls`
 
-Whether or not to use TLS. Halloy uses the secure protocol and cipher suite
+Whether or not to use TLS. Galloy uses the secure protocol and cipher suite
 defaults provided by rustls. See
 [TLS compatibility and troubleshooting](/guides/tls) for details and commands
 that can be used to test a server.
@@ -99,7 +99,7 @@ root_cert_path = ""
 
 ### `use_websocket`
 
-Whether or not to connect using IRCv3 WebSocket transport. When enabled, Halloy connects to `ws://` if [`use_tls`](#use_tls) is `false`, and `wss://` if [`use_tls`](#use_tls) is `true`.
+Whether or not to connect using IRCv3 WebSocket transport. When enabled, Galloy connects to `ws://` if [`use_tls`](#use_tls) is `false`, and `wss://` if [`use_tls`](#use_tls) is `true`.
 
 ```toml
 # Type: boolean
@@ -166,11 +166,11 @@ username = "username"
 password_keyring = true
 ```
 
-With `password_keyring = true`, Halloy uses `servers.<name>.proxy.http.password` or `servers.<name>.proxy.socks5.password`. See the [system keyring guide](../guides/keyring.md).
+With `password_keyring = true`, Galloy uses `servers.<name>.proxy.http.password` or `servers.<name>.proxy.socks5.password`. See the [system keyring guide](../guides/keyring.md).
 
 ### `autoconnect`
 
-Whether or not to connect to the server when launching Halloy or when changing the connection details in the server configuration.
+Whether or not to connect to the server when launching Galloy or when changing the connection details in the server configuration.
 
 ```toml
 # Type: boolean
@@ -317,7 +317,7 @@ Set values for metadata keys (`"display-name"`, `"avatar"`, `"pronouns"`, `"home
 metadata = { pronouns = "they/them" }
 ```
 
-| **Key**        | **Utilization in Halloy** | **Value Format** | **Example Value** |
+| **Key**        | **Utilization in Galloy** | **Value Format** | **Example Value** |
 | -------------- | ------------------------- | ---------------- | ----------------- |
 | `avatar`       | Avatar that is shown in the user's context menu | URL for an image, with an optional {size} substitution denoting the size to load in pixels | `https://example.com/avatar/{size}/asdf.jpg` |
 | `color`        | Color used to style nickname ([`display.adapt_metadata_colors`](/configuration/display#adapt_metadata_colors)), and shown in the user's context menu | HTML-style 6 hexadecimal digits | `#800040` |
@@ -347,7 +347,7 @@ umodes = "+RB-x"
 
 ## Authentication
 
-Settings that control how Halloy authenticates with the server.
+Settings that control how Galloy authenticates with the server.
 
 ### `sasl.plain` {#sasl-plain}
 
@@ -693,7 +693,7 @@ Flatpak users need to grant host command access.
 Run the following in terminal:
 
 ```sh
-flatpak override org.squidowl.halloy --talk-name=org.freedesktop.Flatpak
+flatpak override io.github.solid_pixel.Galloy --talk-name=org.freedesktop.Flatpak
 ```
 
 Then set `password_command` to `flatpak-spawn --host <password_command>`
@@ -794,7 +794,7 @@ on_connect = ["/msg NickServ IDENTIFY foo bar", "/delay 2", "/join registered-cl
 
 ## Features
 
-Settings that control how features provided by the server and/or Halloy are utilized.
+Settings that control how features provided by the server and/or Galloy are utilized.
 
 ### `icon`
 
@@ -900,7 +900,7 @@ Each entry supports:
 
 Reroute private `PRIVMSG` traffic from specific users into another buffer instead of a query buffer.
 
-This only changes where Halloy displays the messages. The messages are still private and are not visible to other users in the channel.
+This only changes where Galloy displays the messages. The messages are still private and are not visible to other users in the channel.
 
 ```toml
 # Type: array
@@ -917,7 +917,7 @@ query = [
 
 Reroute private `NOTICE` traffic from specific users into another buffer instead of a query buffer.
 
-This only changes where Halloy displays the notices. The notices are still private and are not visible to other users in the channel.
+This only changes where Galloy displays the notices. The notices are still private and are not visible to other users in the channel.
 
 ```toml
 # Type: array
@@ -1106,7 +1106,7 @@ Typing settings for channel and query buffers on server.
 
 #### `share`
 
-Control whether Halloy shares your typing status with other users on the server.
+Control whether Galloy shares your typing status with other users on the server.
 
 ```toml
 # Type: boolean
@@ -1119,7 +1119,7 @@ share = false
 
 #### `show`
 
-Control whether Halloy shows typing status from other users on the server.
+Control whether Galloy shows typing status from other users on the server.
 
 ```toml
 # Type: boolean
@@ -1281,15 +1281,15 @@ Use `networks` to change settings for individual networks on a bouncer.
 ignore = ["Guest9702"]
 ```
 
-Here, `home` is the server name given for the bouncer in Halloy's configuration
+Here, `home` is the server name given for the bouncer in Galloy's configuration
 file, and `libera` is the network name as configured on the bouncer. Network
 names are not case-sensitive.
 
 The network uses the settings from `[servers.home]` unless you override them.
 
-You can use `enabled = false` to hide a network and disconnect Halloy from it
+You can use `enabled = false` to hide a network and disconnect Galloy from it
 (this does not disable the network on the bouncer). Changing `enabled` back to
-`true` will reconnect Halloy to the network.
+`true` will reconnect Galloy to the network.
 
 You can also override:
 
@@ -1317,9 +1317,9 @@ for an example.
 
 Logs of **all** IRC messages received from and sent to and the server (logged messages may contain sensitive information and will be stored in plain text).  Log files can be found in:
 
-* Windows: `%AppData%\Roaming\halloy\irc_protocol_logs\<name>\`
+* Windows: `%AppData%\halloy\irc_protocol_logs\<name>\`
 * macOS: `~/Library/Application Support/halloy/irc_protocol_logs/<name>/` or `$HOME/.local/share/halloy/irc_protocol_logs/<name>/`
-* Linux: `$XDG_DATA_HOME/halloy/irc_protocol_logs/<name>/`, `$HOME/.local/share/halloy/irc_protocol_logs/<name>/`, or `$HOME/.var/app/org.squidowl.halloy/data/halloy/irc_protocol_logs/<name>/` (Flatpak)
+* Linux: `$XDG_DATA_HOME/halloy/irc_protocol_logs/<name>/`, `$HOME/.local/share/halloy/irc_protocol_logs/<name>/`, or `$HOME/.var/app/io.github.solid_pixel.Galloy/data/halloy/irc_protocol_logs/<name>/` (Flatpak)
 
 ::: info
 In case the server is connected via a bouncer the server logs directory will be nested under the bouncer name.
@@ -1362,7 +1362,7 @@ format = "goguma"
 
 ### `timestamp`
 
-Time zone to use for Halloy-provided timestamps in the logs and their file names.  `"local"` uses the system's local timezone, and `"utc"` uses the UTC timezone (may be more difficult to understand, but stable if the system changes timezones).
+Time zone to use for Galloy-provided timestamps in the logs and their file names.  `"local"` uses the system's local timezone, and `"utc"` uses the UTC timezone (may be more difficult to understand, but stable if the system changes timezones).
 
 ```toml
 # Type: string

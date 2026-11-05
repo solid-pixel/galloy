@@ -1,6 +1,6 @@
 # Display
 
-Display settings for Halloy.
+Display settings for Galloy.
 
 ## `direction_arrows`
 

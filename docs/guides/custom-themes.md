@@ -1,6 +1,6 @@
 # Custom themes
 
-To create a custom theme for Halloy, simply place a theme file (with a `.toml` extension) inside the `themes` folder within the [configuration directory](/configuration#directory).
+To create a custom theme for Galloy, simply place a theme file (with a `.toml` extension) inside the `themes` folder within the [configuration directory](/configuration#directory).
 
 ```toml
 # Consider we have a theme called "foobar.toml" inside the themes folder.
@@ -11,7 +11,7 @@ theme = "foobar"
 ```
 
 ::: tip
-Halloy has a built in theme editor which makes theme creation easier
+Galloy has a built in theme editor which makes theme creation easier
 :::
 
  Each `"<color string>"` is expected to be a valid hex color. If invalid, or if
@@ -131,20 +131,20 @@ default = <text style>
 More information on formatting colors is available in the [text formatting guide](/guides/text-formatting.md).
 
 ::: info
-The default Ferra theme toml file can be viewed [on GitHub](https://github.com/squidowl/halloy/blob/main/assets/themes/ferra.toml).
+The default Ferra theme toml file can be viewed [on GitHub](https://github.com/solid-pixel/galloy/blob/main/assets/themes/ferra.toml).
 :::
 
 ## Base16
 
 The [base16](https://github.com/chriskempson/base16) color scheme framework
-includes hundreds of color schemes build using 16 colors. These color schemes have
-are compiled for Halloy in the
+includes hundreds of color schemes built using 16 colors. Halloy-compatible
+versions, which also work in Galloy, are available in the
 [`4e554c4c/base16-halloy`](https://github.com/4e554c4c/base16-halloy)
 repository.
 
 To use these themes, download `themes.tar.gz` from the
 [latest release](https://github.com/4e554c4c/base16-halloy/releases/latest)
-and unpack it to the `themes` folder in the Halloy configuration directory. Then
+and unpack it to the `themes` folder in the Galloy configuration directory. Then
 you can enable themes individually in `config.toml`.
 
 ### Example

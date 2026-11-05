@@ -70,7 +70,7 @@ Notification sound. Supports both built-in sounds, and external sound files
 (`mp3`, `ogg`, `flac` or `wav` placed inside the `sounds` folder within the
 [configuration directory](/configuration#directory)).
 
-When multiple sounds are specified, Halloy will randomly select one each time the notification is triggered.
+When multiple sounds are specified, Galloy will randomly select one each time the notification is triggered.
 
 ```toml
 # Type: string or array of strings

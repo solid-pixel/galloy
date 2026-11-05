@@ -38,7 +38,7 @@ Use **Add network** at the bottom of the network sidebar to create a network.
 Select a network in the list to rename or remove it and edit its connection or
 authentication settings. Each network has a server hostname, an optional
 port, a nickname, channels to join on connection, TLS, and automatic connection
-on launch. An empty port uses Halloy's default for the configured transport.
+on launch. An empty port uses Galloy's default for the configured transport.
 
 Use **More network settings** to choose a group for identity, connection limits,
 WebSocket/TLS options, server passwords, NickServ, SASL PLAIN or EXTERNAL,
@@ -74,7 +74,7 @@ Lists retain their saved choices and order until edited. The last ordinary or
 list-mode selection is the one saved by Apply.
 
 Select **Browse and download themes** to search the official Halloy gallery
-and filter light or dark themes. Selecting a theme previews it throughout Halloy
+and filter light or dark themes. Selecting a theme previews it throughout Galloy
 and enables **Apply** when it changes the saved selection. **Apply** downloads the theme if needed and saves your choice.
 **Revert changes**, or closing Settings and discarding changes, restores the
 saved appearance.
@@ -90,7 +90,7 @@ The gallery needs an internet connection. A failed request offers **Try again**
 and a link to the gallery website. Theme files installed manually are discovered in the background when Settings is
 opened, reverted, or the theme browser is opened. Exact filenames identify themes;
 case-insensitive name matching is used only when there is one matching file.
-Gallery requests use the current global proxy setting. With Halloy's built-in
+Gallery requests use the current global proxy setting. With Galloy's built-in
 Tor proxy, gallery requests are unavailable; they do not fall back to a direct connection.
 
 Font family and code font have searchable menus of installed font families.
@@ -102,7 +102,7 @@ after installing fonts. If fonts cannot be listed, you can enter a name manually
 
 Font family, code font, weights, stretch, emoji size, text size and line height
 apply immediately when you press **Apply**, across open windows and newly opened
-windows. Empty font fields use Halloy's defaults. Interface scale applies
+windows. Empty font fields use Galloy's defaults. Interface scale applies
 immediately. Chat interface scale affects the chat windows;
 Settings stays at its default scale so the scale control remains reachable.
 
@@ -131,14 +131,14 @@ also have controls.
 Read markers, composer visibility, formatting, nickname display, draft
 persistence, completion order, emoji, and typing indicators have their own
 groups. These are global defaults; channel-specific configuration can override
-them. Timestamp and date formats use Halloy's existing format syntax.
+them. Timestamp and date formats use Galloy's existing format syntax.
 
 ## Sidebar
 
 Set the position, width, server and channel ordering, menu buttons, label sizes,
 icon sizes, casing, and spacing. Separate groups control unread indicators,
 highlights, typing indicators, scrollbars, internal tool order and muting. Empty optional size fields use
-Halloy's defaults. Position changes apply immediately.
+Galloy's defaults. Position changes apply immediately.
 
 Advanced values that do not fit a picker are shown as **Configured in file**.
 They stay intact until you choose a replacement. Only edited settings are
@@ -153,9 +153,9 @@ notifications for every message in a named channel; channel names may include do
 Select a channel rule to rename or remove it. Removal is staged until Apply and
 asks for confirmation.
 
-Sounds accept built-in names or custom sound filenames from Halloy's `sounds`
+Sounds accept built-in names or custom sound filenames from Galloy's `sounds`
 folder. Use **Add built-in sound** to append a sound, or type names directly.
-Separate alternative sounds with semicolons; Halloy chooses one randomly.
+Separate alternative sounds with semicolons; Galloy chooses one randomly.
 Empty notification sounds mean silence. The delay is in milliseconds; an empty
 field restores 500 ms. These controls configure future notifications; they do
 not send a test notification or play audio.
@@ -190,12 +190,12 @@ shown with quoting where needed, including bindings for the semicolon key.
 ## Keyboard shortcuts
 
 The four groups cover all existing ordinary and message-focus actions. Edit a
-binding with Halloy's existing names, such as `command+k`, `ctrl+shift+k`, or
+binding with Galloy's existing names, such as `command+k`, `ctrl+shift+k`, or
 `alt+up`. Separate alternatives with semicolons. Commas in shortcuts are literal:
 `command+,` can explicitly override the built-in Settings gesture.
 
 **Clear** disables that action; **Default** removes its override and restores
-Halloy's platform default. Conflicts and invalid bindings prevent saving and
+Galloy's platform default. Conflicts and invalid bindings prevent saving and
 reveal the affected field. Resolve conflicts by changing or clearing one of the
 listed actions; changes are validated together so bindings can be swapped.
 Message selection retains its built-in plain arrow keys. Direction bindings also
@@ -245,7 +245,7 @@ Closing or quitting with an unsaved draft asks whether to discard it.
 
 If another editor changes the file, saving is refused. Reopen Settings or revert
 to load the latest version, then make your changes again. Save or revert unsaved
-changes in Halloy's Config Editor before applying Settings.
+changes in Galloy's Config Editor before applying Settings.
 
 ## Development
 

@@ -1,14 +1,16 @@
 # Configuration
 
-In this fork, **Settings** provides graphical editing across the supported configuration areas.
+In Galloy, **Settings** provides graphical editing across the supported configuration areas.
 See the [Settings GUI guide](./guides/settings-gui.md).
 
-Halloy uses a TOML file for configuration called `config.toml`.  The specification for the configuration file format ([TOML](https://toml.io/)) can be found at [https://toml.io/](https://toml.io/).
+Galloy uses a TOML file for configuration called `config.toml`.  The specification for the configuration file format ([TOML](https://toml.io/)) can be found at [https://toml.io/](https://toml.io/).
 
-A default file is created in the [configuration directory](#directory) when you launch Halloy for the first time.
+A default file is created in the [configuration directory](#directory) when you launch Galloy for the first time.
 
 ::: tip
-Most configuration changes can be applied by reloading the configuration file from the sidebar menu, [keyboard shortcut](./configuration/keyboard.md), or the command bar
+Settings applies saved changes directly. After editing the file in another editor,
+reload it from the user menu, [keyboard shortcut](./configuration/keyboard.md), or
+the command bar. Some startup options still require a restart.
 :::
 
 See the following guides for example configurations:
@@ -17,13 +19,17 @@ See the following guides for example configurations:
 - [Connect with soju](./guides/connect-with-soju.md)
 - [Connect with ZNC](./guides/connect-with-znc.md)
 
+Galloy keeps Halloy's default folder names for compatibility. Outside Flatpak,
+quit one client before using the other with shared data. See
+[Packaging and identity](./guides/galloy-packaging.md).
+
 ## Directory
 
 The location of the configuration directory depends on your system:
 
 * Windows: `%AppData%\halloy`
 * macOS: `~/Library/Application Support/halloy` or `$HOME/.config/halloy`
-* Linux: `$XDG_CONFIG_HOME/halloy`, `$HOME/.config/halloy` or `$HOME/.var/app/org.squidowl.halloy/config/halloy` (Flatpak)
+* Linux: `$XDG_CONFIG_HOME/halloy`, `$HOME/.config/halloy` or `$HOME/.var/app/io.github.solid_pixel.Galloy/config/halloy` (Flatpak)
 
 ::: tip
 For Flatpak users that want to use the `$HOME` paths for configuration, see

@@ -1,6 +1,6 @@
 # Reduce Noise
 
-It's not uncommon for channels to have many server messages for every regular message, resulting in a low signal to noise ratio.  Halloy has various settings that can help reduce the number of visible server messages in the chat log.  This guide will cover some of those settings.
+It's not uncommon for channels to have many server messages for every regular message, resulting in a low signal to noise ratio.  Galloy has various settings that can help reduce the number of visible server messages in the chat log.  This guide will cover some of those settings.
 
 ## Condense Server Messages
 

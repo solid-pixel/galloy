@@ -70,7 +70,7 @@ Below is a list of all actions which can be mapped.
 | `theme_editor`                 | Toggle Theme Editor Window          | <kbd>⌘</kbd> + <kbd>t</kbd>                         | <kbd>ctrl</kbd> + <kbd>t</kbd>                      |
 | `highlights`                   | Toggle Highlights Window            | <kbd>⌘</kbd> + <kbd>i</kbd>                         | <kbd>ctrl</kbd> + <kbd>i</kbd>                      |
 | `search`                       | Toggle Search Buffer                | <kbd>⌘</kbd> + <kbd>shift</kbd> + <kbd>f</kbd>      | <kbd>ctrl</kbd> + <kbd>shift</kbd> + <kbd>f</kbd>   |
-| `quit_application`             | Quit Halloy                         | None                                                | None                                                |
+| `quit_application`             | Quit Galloy                         | None                                                | None                                                |
 | `open_config_editor`           | Toggle Config Editor Buffer         | None                                                | None                                                |
 | `open_config_file`             | Open settings file in system editor | None                                                | None                                                |
 | `show_muted_buffers`           | Show muted buffers                  | None                                                | None                                                |

@@ -10,7 +10,7 @@ server = "irc.libera.chat" # address of server
 use_tls = true # TLS is recommended when available
 port = 6697 # default port when use_tls = true
 
-nickname = "halloy-user" # your name on the server
+nickname = "galloy-user" # your name on the server
 
 channels = ["#halloy"] # channel(s) joined on launch
 ```
@@ -56,7 +56,7 @@ server = "irc.oftc.net" # address of server
 use_tls = true # TLS is recommended when available
 port = 6697 # default port when use_tls = true
 
-nickname = "halloy-user" # your name on the server
+nickname = "galloy-user" # your name on the server
 ```
 
 ### [Registered with SSL CertFP](https://www.oftc.net/NickServ/CertFP/#automatically-identifying-using-ssl--certfp)
@@ -81,7 +81,7 @@ server = "irc.slashnet.org" # address of server
 use_tls = false # disabled because TLS is not available
 port = 6667 # default port when use_tls = false
 
-nickname = "halloy-user" # your name on the server
+nickname = "galloy-user" # your name on the server
 ```
 
 ## [Undernet](https://www.undernet.org/)
@@ -92,7 +92,7 @@ server = "irc.undernet.org" # address of server
 use_tls = false # disabled because TLS is not available
 port = 6667 # default port when use_tls = false
 
-nickname = "halloy-user" # your name on the server
+nickname = "galloy-user" # your name on the server
 ```
 
 ## [2600net](https://scuttled.net/)
@@ -103,5 +103,5 @@ server = "irc.scuttled.net" # address of server
 use_tls = true # TLS is recommended when available
 port = 6697 # default port when use_tls = true
 
-nickname = "halloy-user" # your name on the server
+nickname = "galloy-user" # your name on the server
 ```

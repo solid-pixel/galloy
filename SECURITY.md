@@ -1,16 +1,25 @@
-# Security Policy
+# Security policy
 
-## Supported Versions
+Galloy is an unofficial, AI-assisted fork of Halloy, maintained independently.
+Report vulnerabilities affecting Galloy to this fork so they can be investigated
+against the version you are using.
 
-Only the latest released minor version of Halloy is supported.
+## Supported versions
 
-| Version           | Supported          |
-| ----------------- | ------------------ |
-| 2026.10           | :white_check_mark: |
-| Previous Versions | :x:                |
+Please use the latest [Galloy preview](https://github.com/solid-pixel/galloy/releases).
+Older previews may lack fixes. Galloy is experimental; there is no guaranteed
+response time or long-term security support commitment.
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
-If you believe you have found a security vulnerability, please DO NOT disclose it publicly until we’ve had a chance to fix it.
+Report suspected vulnerabilities privately through
+[Report a vulnerability](https://github.com/solid-pixel/galloy/security/advisories/new)
+on Galloy's Security tab. A GitHub account is required.
 
-Please don’t report security vulnerabilities via GitHub issues, instead report them privately via the [Security Advisories](https://github.com/squidowl/halloy/security/advisories/new) page.
+Include the Galloy version and commit, operating system, reproduction steps,
+and the expected impact. Remove passwords, tokens, private messages, and other
+personal information from logs or configuration excerpts.
+
+Use the public issue tracker for ordinary bugs. Keep suspected vulnerabilities
+private while they are investigated. The fork maintainer can coordinate with
+Halloy upstream when shared code is affected.

@@ -1,6 +1,6 @@
 # Buffer
 
-Buffer settings for Halloy.
+Buffer settings for Galloy.
 
 ## `line_spacing`
 
@@ -611,7 +611,7 @@ characters_to_trigger_picker = 2
 
 ## `internal_messages`
 
-Internal messages are messages sent from Halloy itself.
+Internal messages are messages sent from Galloy itself.
 
 ### `default`
 
@@ -761,7 +761,7 @@ on_message_sent = true
 
 ### `on_message`
 
-Marks as read when Halloy is focused and a new message arrives in a buffer that is scrolled to the bottom.  If `"focused"` then only the currently focused buffer will have new messages marked as read, while `"open"` will mark messages as read for any open buffer.
+Marks as read when Galloy is focused and a new message arrives in a buffer that is scrolled to the bottom.  If `"focused"` then only the currently focused buffer will have new messages marked as read, while `"open"` will mark messages as read for any open buffer.
 
 ```toml
 # Type: boolean
@@ -1570,7 +1570,7 @@ Control the font size of the typing indicator. This also adjusts the height of t
 # Type: integer
 # Values: positive integers
 # Default: not set
-# When omitted, Halloy uses the main configured font size.
+# When omitted, Galloy uses the main configured font size.
 
 [buffer.typing]
 font_size = 12
@@ -1591,7 +1591,7 @@ style = "padded"
 
 ### `share`
 
-Control whether Halloy shares your typing status with other users.
+Control whether Galloy shares your typing status with other users.
 
 ```toml
 # Type: boolean
@@ -1604,7 +1604,7 @@ share = false
 
 ### `show`
 
-Control whether Halloy shows typing status from other users.
+Control whether Galloy shows typing status from other users.
 
 ```toml
 # Type: boolean

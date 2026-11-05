@@ -15,10 +15,6 @@ on:
       - ".config/lychee-*.toml"
       - ".github/workflows/docs.yml"
   merge_group:
-    paths:
-      - "docs/**"
-      - ".config/lychee-*.toml"
-      - ".github/workflows/docs.yml"
 
 jobs:
   build-linkcheck:

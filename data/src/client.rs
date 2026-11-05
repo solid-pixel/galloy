@@ -148,7 +148,7 @@ struct MonitoredUser {
     automated: bool,
 }
 
-/// How Halloy should use a connection.
+/// How the client should use a connection.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ConnectionRole {
     /// A normal IRC connection.

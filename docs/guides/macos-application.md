@@ -1,42 +1,39 @@
 # Building for macOS
 
-This guide explains how to build the Halloy `.app` for macOS. If you want to install a signed release version of Halloy on macOS, then you should consult the [Installation](../installation.md) documentation instead.
+Build Galloy's universal macOS application from this fork. For packaged previews,
+see [Installation](../installation.md).
 
 ## Prerequisites
 
-- **macOS 11.0 or later**
-- [**Latest Rust toolchain**](https://www.rust-lang.org/tools/install)
-- **Xcode Command Line Tools** (`xcode-select --install` or <https://developer.apple.com/download/all/>)
+- macOS 11.0 or later
+- Rust, including the toolchain documented in the preview's source archive
+- Xcode Command Line Tools
 
-## Steps
+## Build the application
 
-1. **Clone the Repository**
+```sh
+git clone https://github.com/solid-pixel/galloy.git
+cd galloy
+bash -e scripts/build-macos.sh
+```
 
-   If you haven’t already, clone the Halloy repository:
+The script builds both `x86_64-apple-darwin` and `aarch64-apple-darwin`, combines
+them with `lipo`, and copies the binary and resources into:
 
-   ```sh
-   git clone https://github.com/squidowl/halloy.git
-   cd halloy
-   ```
+```text
+target/packaging/galloy-macos/Galloy.app
+```
 
-2. **Run the Build Script**
+The source bundle template remains named `assets/macos/Halloy.app`, and its
+internal executable remains `halloy`. The installed application is **Galloy**,
+with its own macOS bundle identifier.
 
-   Execute the `build-macos` script:
+## Package a preview
 
-   ```sh
-   ./scripts/build-macos.sh
-   ```
+Run `scripts/package-macos-preview.sh` with a new preview tag matching `VERSION`,
+following the instructions in the source archive for the release you are building.
+The script signs the app ad hoc and verifies the universal disk image.
+It does not provide Apple notarization or a Developer ID signature.
 
-   This script will:
-   - Build the Halloy binary for both `x86_64` and `aarch64` architectures.
-   - Combine them into a universal binary using `lipo`.
-   - Copy the binary and resources into a macOS `.app` bundle template located at `assets/macos/Halloy.app`.
-   - Place the `.app` bundle in `target/packaging/macos`.
-
-3. **Locate the Built Application**
-
-   After the script completes, you’ll find the generated `.app` bundle at:
-
-   ```
-   target/packaging/macos/Halloy.app
-   ```
+See [Packaging and identity](./galloy-packaging.md) for the release workflow and
+platform verification boundaries.

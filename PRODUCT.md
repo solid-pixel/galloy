@@ -7,7 +7,7 @@ Previews, and Transfers and uploads. The user authorized these areas and explici
 requested Impeccable and Halloy’s existing design language.
 
 The initial audience is desktop Halloy users who want to configure the client
-through forms. This audience is inferred from the request. Halloy supports
+through forms. This audience is inferred from the request. Galloy builds on
 macOS, Windows, and Linux; native verification for this change runs on macOS.
 
 ## Scope and behavior
@@ -47,7 +47,7 @@ macOS, Windows, and Linux; native verification for this change runs on macOS.
   scrolls into view. Dropdowns support keyboard selection and cancellation;
   confirmations keep focus on their choices. Validation opens the affected
   section and keeps an explanation beside the field until corrected.
-- Apply validates and saves the existing `config.toml`, then reloads Halloy.
+- Apply validates and saves the existing `config.toml`, then reloads Galloy.
   Other options and comments are retained. A backup is written before replacing
   the file, external edits block saving, and symlinks update their target.
 - Advanced authentication and randomized single/light/dark theme lists have
@@ -65,7 +65,7 @@ macOS, Windows, and Linux; native verification for this change runs on macOS.
 Extend the existing implementation and `assets/screenshot.png`:
 `src/appearance/theme.rs`, its theme modules, `src/widget/pick_list.rs`, and the
 existing native theme editor define fonts, colors, controls, and window behavior.
-Use Halloy’s configured font and palette, flat surfaces, compact labels, and
+Use Galloy’s configured font and palette, flat surfaces, compact labels, and
 plain controls. Settings derives readable text, visibly filled inputs and
 pickers, visible control borders, and clear focus states from the chosen
 palette. Picker menus and unchecked boxes use the same control fill. These

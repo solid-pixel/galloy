@@ -1,18 +1,12 @@
 import footnote from "markdown-it-footnote";
 import { defineConfig } from "vitepress";
 
-const releaseLabel = process.env.DOCS_VERSION ?? "Latest Release";
-const releaseLink =
-  process.env.DOCS_CHANNEL === "nightly" ? "https://halloy.chat" : "/";
-const nightlyLabel = process.env.DOCS_SHA
-  ? `Nightly (${process.env.DOCS_SHA.slice(0, 7)})`
-  : "Nightly";
-const nightlyLink =
-  process.env.DOCS_CHANNEL === "nightly" ? "/" : "https://nightly.halloy.chat";
-const docsChannel =
-  process.env.DOCS_CHANNEL === "nightly" ? nightlyLabel : releaseLabel;
+const docsBase = process.env.DOCS_BASE ?? "/";
 
 const guidesItems = [
+  { text: "Settings GUI", link: "/guides/settings-gui" },
+  { text: "Settings coverage", link: "/guides/settings-gui-coverage" },
+  { text: "Packaging and identity", link: "/guides/galloy-packaging" },
   { text: "Building for Flatpak", link: "/guides/flatpaks" },
   { text: "Building for macOS", link: "/guides/macos-application" },
   { text: "Connect with soju", link: "/guides/connect-with-soju" },
@@ -33,7 +27,7 @@ const guidesItems = [
   { text: "Multiple Servers", link: "/guides/multiple-servers" },
   { text: "Optional Features", link: "/guides/optional-features" },
   { text: "Portable Mode", link: "/guides/portable-mode" },
-  { text: "Pronunciation", link: "/guides/pronunciation" },
+  { text: "Upstream Halloy pronunciation", link: "/guides/pronunciation" },
   { text: "Reduce Noise", link: "/guides/reduce-noise" },
   { text: "Single Pane", link: "/guides/single-pane" },
   {
@@ -129,13 +123,13 @@ const configurationItems = [
 ];
 
 export default defineConfig({
-  title: "Halloy",
+  title: "Galloy",
   description:
-    "Halloy is an open-source IRC client written in Rust, with the iced GUI library. It aims to provide a simple and fast client for Mac, Windows, and Linux platforms.",
-  base: process.env.DOCS_BASE ?? "/",
+    "Galloy is an unofficial, AI-assisted Halloy fork with graphical settings for networks, appearance, and more.",
+  base: docsBase,
   appearance: "force-dark",
   cleanUrls: true,
-  head: [["link", { rel: "icon", type: "image/png", href: "/favicon.png" }]],
+  head: [["link", { rel: "icon", type: "image/png", href: `${docsBase}favicon.png` }]],
   markdown: {
     config: (md) => {
       md.use(footnote);
@@ -150,7 +144,7 @@ export default defineConfig({
   },
   themeConfig: {
     logo: "/logo.png",
-    siteTitle: `Halloy <span class="VPBadge info mobile-only">${docsChannel}</span>`,
+    siteTitle: "Galloy",
     search: {
       provider: "local",
       options: {
@@ -180,23 +174,19 @@ export default defineConfig({
       level: [2, 4],
     },
     nav: [
-      {
-        text: docsChannel,
-        items: [
-          { text: releaseLabel, link: releaseLink, target: "_self" },
-          { text: nightlyLabel, link: nightlyLink, target: "_self" },
-        ],
-      },
-      {
-        text: "Themes",
-        link: "https://themes.halloy.chat/",
-      },
+      { text: "Settings", link: "/guides/settings-gui" },
+      { text: "Downloads", link: "https://github.com/solid-pixel/galloy/releases" },
+      { text: "Halloy themes", link: "https://themes.halloy.chat/" },
     ],
+    footer: {
+      message: 'An unofficial, AI-assisted fork of <a href="https://github.com/squidowl/halloy">Halloy</a>.',
+      copyright: "GPL-3.0-or-later. Built on the work of Halloy contributors.",
+    },
     editLink: {
-      pattern: "https://github.com/squidowl/halloy/edit/main/docs/:path",
+      pattern: "https://github.com/solid-pixel/galloy/edit/main/docs/:path",
     },
     socialLinks: [
-      { icon: "github", link: "https://github.com/squidowl/halloy" },
+      { icon: "github", link: "https://github.com/solid-pixel/galloy" },
     ],
     sidebar: {
       "/configuration": [

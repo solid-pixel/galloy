@@ -1,6 +1,6 @@
 # Sidebar
 
-Sidebar settings for Halloy.
+Sidebar settings for Galloy.
 
 ## `primary_font_size`
 

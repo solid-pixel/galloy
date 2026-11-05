@@ -1,103 +1,46 @@
-# Installing Halloy
+# Installing Galloy
 
-This inherited guide describes upstream Halloy packages. For Galloy, use
-[Galloy packaging and identity](guides/galloy-packaging.md) and the
+Galloy is an unofficial, AI-assisted Halloy fork. Download packages from
 [Galloy releases](https://github.com/solid-pixel/galloy/releases).
 
-## Pre-built binaries
+## macOS preview
 
-Download pre-built binaries from [GitHub](https://github.com/squidowl/halloy/releases) page.
+The current preview is a universal build for Apple silicon and Intel.
 
-### Packaging status
+1. Back up your existing `config.toml` and quit Galloy or Halloy if either is running.
+2. Download the Galloy disk image and compare its SHA-256 hash with the release's checksums.
+3. Open the disk image and drag **Galloy** into **Applications**.
+4. Launch Galloy and open **Settings** with **⌘,**.
 
-<a href="https://repology.org/project/halloy/versions">
-    <img src="https://repology.org/badge/vertical-allrepos/halloy.svg" alt="Packaging status">
-</a>
+The preview is signed ad hoc and is not notarized by Apple. macOS may block its
+first launch. Follow [Apple's opening instructions](https://support.apple.com/en-us/102445)
+and the notes for the release you downloaded.
 
-### macOS
+Galloy uses Halloy's existing configuration and history paths. See
+[configuration](./configuration.md) and [portable mode](./guides/portable-mode.md)
+for shared or isolated data.
 
-The following third party repositories are available for macOS
+## Windows and Linux
 
-#### Homebrew
+Windows installers and Linux packages can be built from this fork. See
+[Packaging and identity](./guides/galloy-packaging.md). These packages have their
+own Galloy application identities and can be installed alongside Halloy.
+Quit one client before using the other with their shared default data.
 
-```sh
-brew install --cask halloy 
-```
+Current Galloy prereleases distribute macOS binaries. Halloy packages in
+Homebrew, MacPorts, Winget, Snap, or Flathub are upstream Halloy packages and
+do not include Galloy's Settings GUI.
 
-#### MacPorts
+## Build from source
 
-```sh
-sudo port install halloy
-```
-
-### Linux
-
-The following third party repositories are available for Linux
-
-#### Flatpak
-
-[https://flathub.org/apps/org.squidowl.halloy](https://flathub.org/apps/org.squidowl.halloy)
-
-#### Snapcraft
-
-[https://snapcraft.io/halloy](https://snapcraft.io/halloy)
-
-#### Manually from release builds
-
-Download the `.tar.gz` file for the [latest release](https://github.com/squidowl/halloy/releases/latest). The `.tar.gz` release has files and folders in it that match the the [XDG Desktop Entry Specification](https://specifications.freedesktop.org/desktop-entry/latest/), which is how many Linux desktop environments store applications.  We will use `/usr/local` as the extraction for our examples since it is widely supported, but you can extract the files wherever you prefer (e.g. `/opt`, `~/.local/`, etc).  To extract into `/usr/local` you'll likely need to be root, or use `sudo`/`doas`/etc:
+Install Rust and Git, plus the platform dependencies described in the
+[packaging guide](./guides/galloy-packaging.md), then run:
 
 ```sh
-sudo tar -xf halloy-*-x86_64-linux.tar.gz -C /usr/local
+git clone https://github.com/solid-pixel/galloy.git
+cd galloy
+cargo run --profile ci
 ```
 
-You may have to update your local application and icon database so Halloy becomes discoverable:
-
-```sh
-sudo update-desktop-database /usr/local/share/applications
-sudo gtk-update-icon-cache -t /usr/local/share/icons/hicolor/
-```
-
-### Windows
-
-#### Winget
-
-```sh
-winget install squidowl.halloy
-```
-
-Command-line options for the GitHub Windows installer (`.exe`) are documented in the [Command Line](/guides/command-line) guide.
-
-### Build from source
-
-Clone the Halloy GitHub repository into a directory of your choice and build with cargo.
-
-Requirements:
-
-* [Rust toolchain](https://www.rust-lang.org/tools/install)
-* [Git version control system](https://git-scm.com/)
-* Packages:
-  - Fedora-based distributions: `alsa-lib-devel openssl-devel libxcb-devel`
-  - Debian-based distributions: `librust-alsa-sys-dev libssl-dev libxcb1-dev`
-
-```sh
-# Clone the repository
-git clone https://github.com/squidowl/halloy.git
-
-cd halloy
-
-# Build and run
-cargo build --release
-cargo run --release
-```
-
-#### Install from Source
-
-The script `install-linux.sh` in the `scripts` directory of the Halloy repository will build and install Halloy on Linux systems (with the same requirements as building from source).  By default the script will install Halloy in the `~/.local/` base directory (i.e. the executable will be put in `~/.local/bin/`).  To change the installation base directory, provide `install-linux.sh` with the long flag <nobr>`--prefix=<base/directory>`</nobr>.
-
-```sh
-git clone https://github.com/squidowl/halloy.git
-
-cd halloy
-
-./scripts/install-linux.sh --prefix=<base/directory>
-```
+The Cargo binary is still named `halloy` internally. Windows and Linux packaging
+installs it as `galloy.exe` and `galloy`, respectively.

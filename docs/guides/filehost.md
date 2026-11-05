@@ -1,6 +1,6 @@
 # File Uploads
 
-Halloy supports file uploads via the [`soju.im/filehost`](https://soju.im/filehost) IRC extension. When a file is uploaded, the resulting URL is inserted into the message input.
+Galloy supports file uploads via the [`soju.im/filehost`](https://soju.im/filehost) IRC extension. When a file is uploaded, the resulting URL is inserted into the message input.
 
 Uploads can be triggered by:
 
@@ -31,7 +31,7 @@ server:
 
 soju supports filehost via its own `soju.im/FILEHOST` token. Configure filehost [in your soju configuration](https://codeberg.org/emersion/soju/src/branch/master/doc/file-upload.md).
 
-soju will advertise the configured URL to clients via `soju.im/FILEHOST`. For networks provided by bouncer, Halloy will use the bouncer's filehost.
+soju will advertise the configured URL to clients via `soju.im/FILEHOST`. For networks provided by bouncer, Galloy will use the bouncer's filehost.
 
 ### ircv3-filehost-server
 
@@ -47,7 +47,7 @@ If your server does not allow advertising a filehost token, or you do not contro
 
 ## Authentication
 
-[`filehost.credentials`](/configuration/servers#credentials) controls whether and what Halloy sends credentials with upload requests. It defaults to `"server"`, which sends the SASL credentials used to connect to the server (if they have been specified).
+[`filehost.credentials`](/configuration/servers#credentials) controls whether and what Galloy sends credentials with upload requests. It defaults to `"server"`, which sends the SASL credentials used to connect to the server (if they have been specified).
 
 - **SASL PLAIN** — sends an `Authorization` header with server `username:password`
 - **SASL EXTERNAL** — presents the client certificate

@@ -1,6 +1,6 @@
 # Connect with soju
 
-Halloy supports two different ways to connect with a [**soju**](https://soju.im/) bouncer
+Galloy supports two different ways to connect with a [**soju**](https://soju.im/) bouncer
 
 1. Automatic network detection using the [`bouncer-networks`](https://codeberg.org/emersion/soju/src/branch/master/doc/ext/bouncer-networks.md) extension
 2. Manual per-network configuration (legacy)
@@ -16,7 +16,7 @@ Both the `fs` and `memory` `message-store` drivers are incompatible with the pro
 
 ## Connect over WebSocket
 
-It's also possible to connect over WebSocket using the IRCv3 WebSocket extension. For a soju that exposes WebSocket at `/socket`, configure Halloy like this:
+It's also possible to connect over WebSocket using the IRCv3 WebSocket extension. For a soju that exposes WebSocket at `/socket`, configure Galloy like this:
 
 ```toml
 [servers.<name>]
@@ -76,7 +76,7 @@ To add a network to soju after connecting:
 /msg BouncerServ net create -addr irc.libera.chat -name libera
 ```
 
-Restart Halloy if the new network does not appear in the sidebar.
+Restart Galloy if the new network does not appear in the sidebar.
 
 ## Manual per-network configuration (legacy)
 

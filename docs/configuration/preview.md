@@ -1,6 +1,6 @@
 # Preview
 
-URL preview settings for Halloy.
+URL preview settings for Galloy.
 
 ## `enabled`
 
@@ -393,9 +393,9 @@ animation = "animate-on-hover"
 
 Settings to control how the image cache is managed. The cache is stored in:
 
-- Windows: `%AppData%\Roaming\Local\halloy\previews\images\`
+- Windows: `%LocalAppData%\halloy\previews\images\`
 - macOS: `~/Library/Caches/halloy/previews/images/` or `$HOME/.cache/halloy/previews/images/`
-- Linux: `$XDG_CACHE_HOME/halloy/previews/images/`, `$HOME/.cache/halloy/previews/images/`, or `$HOME/.var/app/org.squidowl.halloy/cache/halloy/previews/images/` (Flatpak)
+- Linux: `$XDG_CACHE_HOME/halloy/previews/images/`, `$HOME/.cache/halloy/previews/images/`, or `$HOME/.var/app/io.github.solid_pixel.Galloy/cache/halloy/previews/images/` (Flatpak)
 
 ### `max_size`
 
@@ -429,15 +429,15 @@ Request settings for previews.
 
 ### `user_agent`
 
-The User-Agent sent when fetching link previews. Defaults to `Halloy/<version>` and can be overridden for sites that require a browser-like User-Agent.
+The User-Agent sent when fetching link previews. Defaults to `Galloy/<version>` and can be overridden for sites that require a browser-like User-Agent.
 
 ```toml
 # Type: string
 # Values: any string
-# Default: "Halloy/<version>"
+# Default: "Galloy/<version>"
 
 [preview.request]
-user_agent = "Halloy/2026.10"
+user_agent = "Galloy/2026.10"
 ```
 
 ### `timeout_ms`

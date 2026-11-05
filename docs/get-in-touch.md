@@ -1,14 +1,23 @@
-# Get in Touch
+# Get in touch
 
-Join `#halloy` on [Libera.Chat](https://libera.chat/) (<ircs://irc.libera.chat/#halloy>) if you have questions, looking for help or just want to say hello.
-For feature requests or reporting issues, please open a ticket on [GitHub](https://github.com/squidowl/halloy).
+For Galloy bugs, questions, and feature requests, use the
+[Galloy issue tracker](https://github.com/solid-pixel/galloy/issues).
+Include the release version, commit, operating system, and steps to reproduce.
+Remove private details from logs and configuration excerpts.
 
-## Maintainers
+For suspected vulnerabilities, use
+[Galloy's private reporting form](https://github.com/solid-pixel/galloy/security/advisories/new).
 
-* andymandias ([https://github.com/andymandias](https://github.com/andymandias))
-* casperstorm ([https://github.com/casperstorm](https://github.com/casperstorm))
-* tarkah ([https://github.com/tarkah](https://github.com/tarkah))
+## Maintainer
 
-## Contributors
+This fork is maintained independently under
+[solid-pixel](https://github.com/solid-pixel). Galloy is unofficial and AI-assisted.
 
-Special thanks to all the Halloy [contributors](https://github.com/squidowl/halloy/graphs/contributors).
+## Halloy upstream
+
+Halloy is a separate project. Its maintainers do not maintain Galloy's Settings
+GUI or Galloy packages. For Halloy itself, use the
+[upstream project](https://github.com/squidowl/halloy) and its support channels.
+
+Thanks to the [Halloy contributors](https://github.com/squidowl/halloy/graphs/contributors)
+for the IRC client on which Galloy is built.

@@ -1,6 +1,6 @@
 # Platform Specific
 
-Platform specific settings for Halloy.
+Platform specific settings for Galloy.
 
 - [Linux](#linux)
 - [macOS](#macos)

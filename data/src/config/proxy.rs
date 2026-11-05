@@ -123,7 +123,7 @@ pub fn build_client(
     Ok(client_builder(proxy, identity)?.build()?)
 }
 
-/// Start an HTTP client with Halloy's proxy policy applied. Callers can add
+/// Start an HTTP client with the configured proxy policy applied. Callers can add
 /// request-specific limits without accidentally bypassing the global proxy.
 pub fn client_builder(
     proxy: Option<&Proxy>,

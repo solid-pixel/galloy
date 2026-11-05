@@ -16,8 +16,8 @@ pub static DEFAULT: LazyLock<Capabilities> =
     LazyLock::new(Capabilities::default);
 
 // This is not an exhaustive list of IRCv3 capabilities, just the ones that
-// Halloy will request when available.  When adding new IRCv3 capabilities to
-// Halloy they should be added to this enum (Capability), Capability::from_str,
+// the client will request when available. When adding new IRCv3 capabilities,
+// they should be added to this enum (Capability), Capability::from_str,
 // and Capabilities::create_requested.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Deserialize)]
 #[serde(rename_all = "kebab-case")]

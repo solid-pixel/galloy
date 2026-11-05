@@ -221,7 +221,7 @@ impl Filter {
                 }
                 Source::Server(Some(server)) => {
                     // Match server messages from the filtered user, except for
-                    // nick change messages in order to alert the Halloy user
+                    // nick change messages in order to alert the user
                     // that the filtered user has a new nickname.
                     server
                         .nick
@@ -242,7 +242,7 @@ impl Filter {
                 }
                 Source::Server(Some(server)) => {
                     // Match server messages from the filtered user, except for
-                    // nick change messages in order to alert the Halloy user
+                    // nick change messages in order to alert the user
                     // that the filtered user has a new nickname.
                     server.nick.as_ref().is_some_and(|nick| {
                         regex

@@ -113,7 +113,7 @@ jobs:
         with:
           tool: cargo-nextest
       - name: Test
-        run: cargo nextest run --locked --profile ci --workspace --all-targets
+        run: cargo nextest run --locked --cargo-profile ci --profile ci --workspace --all-targets
 
       - name: Verify Linux packaging and Halloy coexistence
         if: matrix.target.target == 'linux'

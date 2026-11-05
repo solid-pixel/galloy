@@ -1,6 +1,6 @@
 # Text Formatting
 
-Text can be formatted in Halloy by using the `/format` (or `/f`) command.
+Text can be formatted in Galloy by using the `/format` (or `/f`) command.
 
 ## Attributes
 
@@ -87,7 +87,7 @@ will render as
 
 ## Configuration
 
-By default, Halloy will only format text when using the `/format` command. This, however, can be changed with the `auto_format` configuration option:
+By default, Galloy will only format text when using the `/format` command. This, however, can be changed with the `auto_format` configuration option:
 
 ```toml
 [buffer.text_input]
@@ -98,4 +98,4 @@ Token-based formatting is included in `"all"`, in addition to Markdown formattin
 
 When `auto_format` is enabled, it can be disabled for an individual message by using the `/plain` command.
 
-[^1]: The text inside link brackets `<` and `>` will not be formatted by Halloy (e.g. `_`'s will not start/stop italics).  However, whether the interior text is parsed as a URL or not is up to the rendering client.
+[^1]: The text inside link brackets `<` and `>` will not be formatted by Galloy (e.g. `_`'s will not start/stop italics).  However, whether the interior text is parsed as a URL or not is up to the rendering client.

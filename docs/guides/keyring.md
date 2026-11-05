@@ -9,7 +9,7 @@ Set a keyring option to `true`:
 password_keyring = true
 ```
 
-If the entry is missing, Halloy asks for the password. Halloy then saves it in
+If the entry is missing, Galloy asks for the password. Galloy then saves it in
 the system keyring.
 
 Use only one source for each password. For example, do not set both `password`
@@ -27,7 +27,7 @@ password_keyring = "my-irc-password"
 
 ## System support
 
-Halloy uses these system stores:
+Galloy uses these system stores:
 
 - macOS Keychain
 - Windows Credential Manager
@@ -35,18 +35,18 @@ Halloy uses these system stores:
 
 On Windows, entry names are not case-sensitive.
 
-To replace a saved password, remove it from the system store. Halloy asks for
+To replace a saved password, remove it from the system store. Galloy asks for
 it again when the configuration is loaded.
 
 ### Access in Flatpak
 
 :::tip
 To access keyrings while running in Flatpak, you will need to manually grant your install of
-Halloy access to the system keyring. You can do this by running:
+Galloy access to the system keyring. You can do this by running:
 
 
 ```bash
-flatpak override --user --talk-name=org.freedesktop.secrets org.squidowl.halloy
+flatpak override --user --talk-name=org.freedesktop.secrets io.github.solid_pixel.Galloy
 ```
 :::
 

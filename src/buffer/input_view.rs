@@ -3006,7 +3006,7 @@ fn handle_clipboard_content(
             )?;
 
             let path = std::env::temp_dir()
-                .join(format!("halloy-paste-{}.png", uuid::Uuid::now_v7()));
+                .join(format!("galloy-paste-{}.png", uuid::Uuid::now_v7()));
 
             rgba_image.save(&path).ok()?;
 
@@ -3035,7 +3035,7 @@ fn handle_text_clipboard_content(
                         > limit.lines.saturating_sub(current.lines) + 1)
             {
                 let path = std::env::temp_dir()
-                    .join(format!("halloy-paste-{}.txt", uuid::Uuid::now_v7()));
+                    .join(format!("galloy-paste-{}.txt", uuid::Uuid::now_v7()));
 
                 std::fs::write(&path, text.as_bytes()).ok()?;
 

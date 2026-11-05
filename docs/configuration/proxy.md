@@ -1,6 +1,6 @@
 # Proxy
 
-Proxy settings for Halloy.
+Proxy settings for Galloy.
 
 ::: info
 [Preview](/configuration/preview) requests will be routed through the same proxy that the corresponding message is routed through (i.e. if a proxy is configured for a server, then all previews for messages on that server will be routed through the proxy).  Except for the for the [Tor](#tor) proxy;  when utilizing the Tor proxy preview requests are disabled.
@@ -166,12 +166,12 @@ password_keyring = true
 
 ## `tor`
 
-Tor proxy settings. Utilizes [Arti](https://arti.torproject.org/) to integrate Tor support directly into Halloy. Does not integrate into a pre-existing Tor setup.  To utilize an existing Tor daemon, use [`[proxy.socks5]`](#socks5) instead.
+Tor proxy settings. Utilizes [Arti](https://arti.torproject.org/) to integrate Tor support directly into Galloy. Does not integrate into a pre-existing Tor setup.  To utilize an existing Tor daemon, use [`[proxy.socks5]`](#socks5) instead.
 
 It accepts no further configuration.
 
 ::: warning
-Tor support is **not included by default**. You must build Halloy with the `tor` feature to use this proxy type. See [Optional Features](../guides/optional-features.md) for build instructions.
+Tor support is **not included by default**. You must build Galloy with the `tor` feature to use this proxy type. See [Optional Features](../guides/optional-features.md) for build instructions.
 :::
 
 ::: warning

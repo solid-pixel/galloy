@@ -136,7 +136,7 @@ the `sounds` folder within the [configuration directory](/configuration#director
 [notifications](/configuration/notifications#sound) for a list of all built-in
 sounds.
 
-When multiple sounds are specified, Halloy will randomly select one each time the notification is triggered. Sounds from all matching rules are combined, with duplicates removed, including when your nickname is highlighted.
+When multiple sounds are specified, Galloy will randomly select one each time the notification is triggered. Sounds from all matching rules are combined, with duplicates removed, including when your nickname is highlighted.
 
 ```toml
 # Type: string or array of strings

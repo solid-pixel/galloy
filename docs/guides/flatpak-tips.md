@@ -1,96 +1,64 @@
-# Flatpak Tips
+# Flatpak tips
 
-Here are a collection of tips for using the Flatpak version of Halloy.
+These tips apply to Galloy's [local Flatpak build](./flatpaks.md), whose application
+ID is `io.github.solid_pixel.Galloy`. Galloy is not published on Flathub.
 
-## Wayland clipboard issues
+## Wayland and X11
 
-There are currently [Wayland clipboard issues](https://github.com/1Password/arboard/issues/223)
-with some desktop environments.
-
-There is a workaround that might work, but first test this:
+To try X11 for one launch:
 
 ```sh
-flatpak run --nosocket=wayland org.squidowl.halloy
+flatpak run --nosocket=wayland io.github.solid_pixel.Galloy
 ```
 
-If this works, you can set the override permanently:
+To persist that choice:
+
 ```sh
-flatpak override --user --nosocket=wayland org.squidowl.halloy
+flatpak override --user --nosocket=wayland io.github.solid_pixel.Galloy
 ```
-
-Your mileage may vary, but turning off Wayland like this may cause UI issues.
-
-You can follow our [issue here](https://github.com/flathub/org.squidowl.halloy/issues/52).
 
 ## Keyring access
 
-To access keyrings while running in Flatpak, you will need to manually grant your install of
-Halloy access to the system keyring. You can do this by running:
-
-
-```bash
-flatpak override --user --talk-name=org.freedesktop.secrets org.squidowl.halloy
-```
-
-## Filesystem access for file transfers
-
-If you want to save file transfers to your specified [`file_transfers.save_directory`](/configuration/file-transfer#save-directory), you'll
-need to grant Flatpak access to the folder:
-
-
-```bash
-flatpak override --user --filesystem=~/Downloads org.squidowl.halloy
-```
-
-## Configuration in `$HOME` paths
-
-When using Flatpak, the location of your Halloy data is `~/.var/app/org.squidowl.halloy`.
-
-If you want to access your configuration data via the `$HOME` paths, this
-section will help you do so.
-
-If you've not been using Flatpak to configure Halloy yet, or you want to use
-existing configuration located in your `$HOME` paths, then skip to the
-[override section](./flatpak-tips#sharing-data-with-home-paths).
-
-### Existing Flatpak installation and usage
-
-If you've been running and using Flatpak, then your data folders
-(`~/.var/app/org.squidowl.halloy`) needs to be symlinked to your `$HOME`
-folders.
+To allow the sandbox to talk to the system Secret Service:
 
 ```sh
-# rename your existing Flatpak config & data
-mv ~/.var/app/org.squidowl.halloy/cache/halloy ~/.var/app/org.squidowl.halloy/cache/halloy.bak
-mv ~/.var/app/org.squidowl.halloy/config/halloy ~/.var/app/org.squidowl.halloy/config/halloy.bak
-mv ~/.var/app/org.squidowl.halloy/data/halloy ~/.var/app/org.squidowl.halloy/data/halloy.bak
-
-# renaming any existing data to prevent being overwritten
-mv ~/.cache/halloy ~/.cache/halloy.bak
-mv ~/.config/halloy ~/.config/halloy.bak
-mv ~/.local/share/halloy ~/.local/share/halloy.bak
-
-# restore your data from the Flatpak to the $HOME paths
-cp -R ~/.var/app/org.squidowl.halloy/cache/halloy.bak ~/.cache/halloy
-cp -R ~/.var/app/org.squidowl.halloy/config/halloy.bak ~/.config/halloy
-cp -R ~/.var/app/org.squidowl.halloy/data/halloy.bak ~/.local/share/halloy
+flatpak override --user --talk-name=org.freedesktop.secrets io.github.solid_pixel.Galloy
 ```
 
-### Sharing data with `$HOME` paths
+Galloy retains the `chat.halloy` keyring service name for configuration compatibility.
+See [Storing passwords in the system keyring](./keyring.md).
 
-Flatpak by default does not allow access to the `$HOME` directory. You will need
-to grant access and then symlink the Halloy paths to the correct locations.
+## Downloads access {#filesystem-access-for-file-transfers}
+
+To allow transfers into your Downloads folder:
+
+```sh
+flatpak override --user --filesystem=~/Downloads io.github.solid_pixel.Galloy
+```
+
+## Configuration in home paths
+
+The default sandbox locations are:
+
+- Configuration: `~/.var/app/io.github.solid_pixel.Galloy/config/halloy`
+- History and data: `~/.var/app/io.github.solid_pixel.Galloy/data/halloy`
+- Cache: `~/.var/app/io.github.solid_pixel.Galloy/cache/halloy`
+
+The `halloy` subdirectory names are retained for compatibility. Galloy's sandbox
+is separate from an existing Halloy Flatpak's sandbox.
+
+Back up configuration and history before copying them between installations.
+For explicit access to the normal home locations, grant only the paths needed:
 
 ```sh
 flatpak override --user \
-  --filesystem=~/.cache/halloy:create \
   --filesystem=~/.config/halloy:create \
   --filesystem=~/.local/share/halloy:create \
-  org.squidowl.halloy
-
-ln -s ~/.cache/halloy ~/.var/app/org.squidowl.halloy/cache/halloy
-ln -s ~/.config/halloy ~/.var/app/org.squidowl.halloy/config/halloy
-ln -s ~/.local/share/halloy ~/.var/app/org.squidowl.halloy/data/halloy
+  --filesystem=~/.cache/halloy:create \
+  io.github.solid_pixel.Galloy
 ```
 
-Your configuration data will now be shared with the `$HOME` paths.
+These permissions do not themselves migrate or redirect sandbox data. Copy a
+backed-up configuration deliberately, or use
+[portable mode](./portable-mode.md) with a directory the sandbox can access.
+Quit one client before using another with shared configuration and history.

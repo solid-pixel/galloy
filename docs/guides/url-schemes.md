@@ -1,6 +1,6 @@
 # URL Schemes
 
-Halloy is able to recognize different URL schemes.
+Galloy is able to recognize different URL schemes.
 
 ## IRC and IRCS
 
@@ -9,7 +9,7 @@ The format is based on the [URI Syntax](https://en.wikipedia.org/wiki/Uniform_Re
 
 ## Format
 
-```url
+```text
 <scheme>://<server>:<port>/[#channel[,#channel]]
 ```
 
@@ -38,7 +38,7 @@ Below is a few URL examples.
 
 ## Halloy
 
-The `halloy://` scheme is used to import themes.
+Galloy accepts the shared `halloy://` theme scheme for compatibility with Halloy's gallery.
 The syntax for that is `halloy:///theme?e=base64EncodedThemeData`.
 
 A list of community created themes can be found at <https://themes.halloy.chat/>.

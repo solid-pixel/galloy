@@ -1,41 +1,60 @@
-# Contributing to Halloy
+# Contributing to Galloy
 
-Thank you for your interest in contributing to Halloy.
+Galloy is an unofficial, AI-assisted fork of Halloy. Contributions to this fork
+belong in the [Galloy repository](https://github.com/solid-pixel/galloy).
 
-Table of Contents:  
+## Bugs and feature requests
 
-1. [Feature Requests](#feature-requests)
-2. [Bug Reports](#bug-reports)
-3. [Patches / Pull Requests](#patches--pull-requests)
-4. [Documentations](#documentation)
-5. [AI](#ai)
-6. [Contact](#contact)
+Search the [issue tracker](https://github.com/solid-pixel/galloy/issues) before
+opening an issue. For bugs, include the Galloy version, commit, operating system,
+reproduction steps, expected behavior, and what happened. Remove private details.
+Report suspected security vulnerabilities through
+[private reporting](https://github.com/solid-pixel/galloy/security/advisories/new).
 
-## Feature Requests
+Discuss substantial features in a Galloy issue before implementing them.
 
-Feature requests should be reported on our repository on GitHub in the [issue tracker](https://github.com/squidowl/halloy/issues). Please search existing issues first to avoid duplicates.
+## Pull requests
 
-## Bug Reports
+Open pull requests on [this fork](https://github.com/solid-pixel/galloy/pulls).
+Keep changes focused, explain the behavior they affect, and describe how they
+were tested. Preserve the shared configuration format, existing settings,
+comments, and credential references.
 
-Bug reports should be reported on our repository on GitHub in the [issue tracker](https://github.com/squidowl/halloy/issues). Please provide as much information as possible such as platform, version of Halloy and steps to produce.
+For Settings changes, follow the compact grouped design and update the
+[settings guide](./guides/settings-gui.md) and
+[coverage checklist](./guides/settings-gui-coverage.md) when behavior or fields change.
+Verify visible changes in the running app.
 
-## Patches / Pull Requests
+With the required toolchains and dependencies installed, run:
 
-All patches have to be sent on GitHub as [pull requests](https://github.com/squidowl/halloy/pulls).
+```sh
+cargo +nightly fmt --all -- --check
+cargo clippy --locked --profile ci --workspace --all-targets -- -D warnings
+cargo test --locked --profile ci --workspace
+```
 
-Should you wish to work on an issue, please leave a comment on it or let us know on <ircs://irc.libera.chat/#halloy> in order to claim the issue.  Significant new features, especially those not specified by IRCv3, should be discussed before submission to ensure they fit with the project.
+CI also checks platform builds and Windows/Linux packaging. See
+[Packaging and identity](./guides/galloy-packaging.md).
 
-If you are looking for a place to start contributing, take a look at the [easy](https://github.com/squidowl/halloy/issues?q=is%3Aissue%20state%3Aopen%20label%3Aeasy) issues.
+## AI assistance
+
+Galloy is developed with AI assistance. Contributors are responsible for
+understanding, reviewing, and testing what they submit. Describe substantial
+AI assistance so reviewers can assess the work with the right context.
+
+Halloy upstream has its own
+[contribution policy](https://halloy.chat/contributing). Follow that policy
+when contributing to Halloy itself.
 
 ## Documentation
 
-Any settings added in a pull request should be described in the [markdown used to generate the documentation website](https://github.com/squidowl/halloy/tree/main/docs).  Pull requests to improve or expand on existing documentation are welcome.
+Edit the Markdown files in this fork's `docs` directory. Build them with:
 
-## AI
+```sh
+cd docs
+bun install --frozen-lockfile
+bun run docs:build
+```
 
-AI-generated content is not allowed in contributions. This includes code, documentation, issues, PR descriptions, and comments. AI tools may be used for research, learning, or bug discovery, but all submitted content must be written and understood by the contributor.
-
-## Contact
-
-For further questions or support please visit the \#halloy channel on Libera.Chat: <ircs://irc.libera.chat/#halloy>.
-You can also reach out to us at casper@rogildstorm.com and <andymandias@vastandtrunkless.systems>.
+Keep Galloy's behavior and distribution status distinct from upstream Halloy.
+Retain upstream attribution and accurate links to shared services and formats.

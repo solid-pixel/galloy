@@ -1,7 +1,7 @@
 //! Settings-local adaptation of Iced's pick list, with keyboard focus and selection.
 //! Based on iced_widget/src/pick_list.rs at 138b1d0.
 //! Copyright 2019 Héctor Ramón, Iced contributors. See ICED-LICENSE.
-//! Kept local because the rest of Halloy uses the upstream widget unchanged.
+//! Kept local because the rest of the app uses the upstream widget unchanged.
 use std::borrow::Borrow;
 use std::f32;
 

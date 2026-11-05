@@ -1,90 +1,50 @@
-# Uninstalling Halloy
+# Uninstalling Galloy
 
-## Remove binary
+Quit Galloy before uninstalling it. Removing the application does not remove its
+configuration or chat history.
 
-Remove the Halloy executable via package manager, or from the install location selected after building from source.
+## macOS
 
-### macOS
+Move **Galloy.app** from Applications to the Trash.
 
-For uninstalling installations from the following third party repositories in macOS
+## Windows
 
-#### Homebrew
+If you built and installed Galloy's Windows installer, uninstall **Galloy** from
+Windows Settings. It removes Galloy's own files and URL registrations and keeps
+an existing Halloy installation.
 
-```sh
-brew uninstall --cask halloy
-```
+For a portable build, remove the Galloy executable from its install directory.
+Keep a backup of any configuration or history stored beside it.
 
-#### MacPorts
+## Linux
 
-```sh
-sudo port uninstall halloy
-```
+For a source installation, remove Galloy's installed files from the prefix you
+selected. The default prefix is `~/.local`:
 
-### Linux
+- `bin/galloy`
+- `share/applications/io.github.solid_pixel.Galloy.desktop`
+- `share/metainfo/io.github.solid_pixel.Galloy.appdata.xml`
+- `share/icons/hicolor/*/apps/io.github.solid_pixel.Galloy.png`
+- `share/licenses/galloy/LICENSE` if installed from an archive
 
-For uninstalling installations from the following third party repositories in Linux
-
-#### Flatpak
-
-```sh
-flatpak uninstall org.squidowl.halloy
-```
-
-or
+Remove only these Galloy files. Shared icon directories may contain other apps.
+For a local Flatpak build, use:
 
 ```sh
-flatpak uninstall --delete-data org.squidowl.halloy
+flatpak uninstall io.github.solid_pixel.Galloy
 ```
 
-to also remove all data stored by Halloy.
+## Configuration and history
 
-#### Snapcraft
+Galloy shares Halloy's default data locations outside Flatpak. Removing those
+folders also affects Halloy. Back them up and keep them if you use either client.
 
-```sh
-snap remove halloy
-```
+Configuration is stored in:
 
-or
+- Windows: `%AppData%\halloy`
+- macOS: `~/Library/Application Support/halloy` or `$HOME/.config/halloy`
+- Linux: `$XDG_CONFIG_HOME/halloy` or `$HOME/.config/halloy`
 
-```sh
-snap remove --purge halloy
-```
-
-to also remove all data stored by Halloy.
-
-### Windows
-
-#### Winget
-
-```sh
-winget uninstall squidowl.halloy
-```
-
-### Built from source
-
-On modern POSIX shells, the command
-
-```sh
-command -v halloy
-```
-
-will reveal the location of the Halloy executable, which can then be removed via `rm`.
-
-## Remove data
-
-### History, logs, and other state data
-
-History, logs, and other state data is stored in the following locations:
-
-* Windows: `%AppData%\Roaming\halloy`
-* macOS: `~/Library/Application Support/halloy` or `$HOME/.local/share/halloy`
-* Linux: `$XDG_DATA_HOME/halloy` or `$HOME/.local/share/halloy`
-
-### Configuration and themes
-
-Configuration (and associated files such as sounds) and themes are stored in the following locations:
-
-* Windows: `%AppData%\halloy`
-* macOS: `~/Library/Application Support/halloy` or `$HOME/.config/halloy`
-* Linux: `$XDG_CONFIG_HOME/halloy` or `$HOME/.config/halloy`
-
+See [configuration](./configuration.md#directory) for path selection,
+[portable mode](./guides/portable-mode.md) for an explicitly chosen data folder,
+and [Flatpak tips](./guides/flatpak-tips.md) for sandbox locations.

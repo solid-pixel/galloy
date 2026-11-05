@@ -1,27 +1,50 @@
-# Halloy
+# Galloy
 
-An open-source IRC client for macOS, Windows, and Linux, focused on being simple and fast.
+An IRC client with graphical settings, built on [Halloy](https://github.com/squidowl/halloy).
+**Galloy is an unofficial, AI-assisted fork**, maintained independently of upstream.
 
-<br />
-<img src="./images/banner.png" style="display: block; width: 100%; margin: 0;" alt="Halloy banner">
-<img src="./images/animation.gif" style="display: block; width: 100%; margin: 0;" alt="Halloy in action">
+![Galloy's Blackberry bird against a plum and coral sunset](./images/galloy-banner.png)
 
-## Cross platform
+[Download the macOS preview](https://github.com/solid-pixel/galloy/releases)
+· [Settings guide](./guides/settings-gui.md)
+· [Report an issue](https://github.com/solid-pixel/galloy/issues)
 
-Halloy is a native desktop IRC client built with Rust and the [iced](https://github.com/iced-rs/iced/) GUI library. We use a single codebase to build natively to both Linux, macOS and Windows. See [Installation guide](./installation.md) to get started.
+## Graphical settings
 
-## Free and open source
+Configure networks, appearance, navigation, chat display, notifications,
+shortcuts, and more in the native Settings window. Preview themes throughout
+the app and choose installed fonts without restarting.
 
-Halloy is free and open source. You can find the source code as well as report issues and feature requests on [GitHub](https://github.com/squidowl/halloy).
+![Galloy's compact Appearance settings](./images/galloy-settings.png)
 
+Start with [Getting started](./getting-started.md), or see the
+[field coverage guide](./guides/settings-gui-coverage.md) for available controls.
+The Config Editor and shared TOML configuration format remain available.
 
-## Customization
+## Platforms and compatibility
 
-Halloy is configured through a `config.toml` file. From servers and notifications to themes, fonts, panes, and keyboard shortcuts, there are many options available to tune Halloy to your liking. See [Configuration](./configuration.md) to get started.
+Galloy builds for macOS, Windows, and Linux. Current packaged previews are
+universal macOS builds for Apple silicon and Intel. They are signed ad hoc and
+are not notarized by Apple. See [Installation](./installation.md) for downloads
+and [Packaging and identity](./guides/galloy-packaging.md) for source builds.
+
+Galloy shares Halloy's default configuration and history locations outside
+Flatpak. Quit one before opening the other with shared data, or use
+[portable mode](./guides/portable-mode.md) for separate data.
+
+## Credits and license
+
+Galloy builds on Halloy and the [Iced](https://github.com/iced-rs/iced) GUI library.
+The IRC client is the work of Halloy's upstream contributors. The fork and
+Settings GUI were developed with AI assistance.
+
+Galloy is licensed under GPL-3.0-or-later. Source and build instructions are
+included with each preview. See [Contributing](./contributing.md) and
+[Get in touch](./get-in-touch.md) for this fork's contribution and support routes.
 
 ## IRCv3 Capabilities
 
-We strive to be a leading irc client with a rich IRCv3 feature set. Currently supported capabilities:
+Galloy inherits Halloy's IRC engine and IRCv3 support. Supported capabilities include:
 
 - [account-notify](https://ircv3.net/specs/extensions/account-notify)
 - [away-notify](https://ircv3.net/specs/extensions/away-notify)
