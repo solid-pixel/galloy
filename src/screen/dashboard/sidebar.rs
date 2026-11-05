@@ -2406,8 +2406,9 @@ fn sidebar_icon<'a>(
                         row![
                             Space::new().width(dimensions.icon_badge_padding),
                             column![
-                                Space::new()
-                                    .height(dimensions.icon_badge_padding),
+                                // Match the label's optical center, which sits
+                                // slightly below the center of its line box.
+                                Space::new().height(1),
                                 icon
                             ]
                         ]
