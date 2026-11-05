@@ -17,11 +17,11 @@ fi
 curl -L 'https://github.com/flatpak/flatpak-builder-tools/raw/master/cargo/flatpak-cargo-generator.py' > /tmp/flatpak-cargo-generator.py
 python3 /tmp/flatpak-cargo-generator.py Cargo.lock -o assets/flatpak/generated-sources.json
 
-if [ "${CI}" != "yes" ] ; then
+if [ "${CI:-}" != "yes" ] ; then
   flatpak-builder \
     --install --force-clean --user \
     --install-deps-from=flathub \
-    --repo=/var/tmp/halloy-flatpak-repo \
-    --state-dir=/var/tmp/halloy-flatpak-state \
-    /var/tmp/halloy-flatpak-build assets/flatpak/org.squidowl.halloy.json
+    --repo=/var/tmp/galloy-flatpak-repo \
+    --state-dir=/var/tmp/galloy-flatpak-state \
+    /var/tmp/galloy-flatpak-build assets/flatpak/io.github.solid_pixel.Galloy.json
 fi

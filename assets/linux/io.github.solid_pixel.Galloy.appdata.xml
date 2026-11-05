@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>io.github.solid_pixel.Galloy</id>
+    <metadata_license>MIT</metadata_license>
+    <project_license>GPL-3.0-or-later</project_license>
+    <name>Galloy</name>
+    <summary>IRC client with graphical settings</summary>
+    <description>
+        <p>Galloy is an unofficial, AI-assisted fork of Halloy with a native settings window.</p>
+        <p>Configure networks, appearance, notifications, shortcuts, and more.
+        Preview themes throughout the app and choose from your installed fonts.</p>
+    </description>
+    <launchable type="desktop-id">io.github.solid_pixel.Galloy.desktop</launchable>
+    <url type="homepage">https://github.com/solid-pixel/galloy</url>
+    <url type="help">https://github.com/solid-pixel/galloy/blob/main/docs/guides/settings-gui.md</url>
+    <url type="vcs-browser">https://github.com/solid-pixel/galloy</url>
+    <url type="bugtracker">https://github.com/solid-pixel/galloy/issues</url>
+    <url type="contribute">https://github.com/solid-pixel/galloy/blob/main/README.md</url>
+    <screenshots>
+        <screenshot type="default">
+            <image>https://raw.githubusercontent.com/solid-pixel/galloy/main/assets/settings-gui.png</image>
+            <caption>Galloy appearance settings</caption>
+        </screenshot>
+    </screenshots>
+    <developer id="io.github.solid_pixel"><name>Galloy contributors</name></developer>
+    <content_rating type="oars-1.1">
+        <content_attribute id="social-chat">moderate</content_attribute>
+    </content_rating>
+    <releases>
+        <release version="2026.10-gui-preview.6" date="2026-11-05" type="development">
+            <url type="details">https://github.com/solid-pixel/galloy/releases/tag/2026.10-gui-preview.6</url>
+        </release>
+    </releases>
+</component>

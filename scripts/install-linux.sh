@@ -1,36 +1,16 @@
-#! /usr/bin/env -S bash -e
+#!/bin/bash
+set -euo pipefail
 
-# Installs to ~/.local/bin/ and ~/.local/share/ by default
-# Destination directory can be overridden with the long flag:
-#   --prefix=/path/to/install
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+PREFIX="$HOME/.local"
+for arg in "$@"; do
+  case "$arg" in
+    --prefix=*) PREFIX=${arg#--prefix=} ;;
+    *) echo "Unknown argument: $arg" >&2; exit 1 ;;
+  esac
+done
 
-  script_dir=$(dirname -- "$(realpath -- "${BASH_SOURCE[0]}")")
-  git_root_dir=$(git -C "$script_dir" rev-parse --show-toplevel)
-
-  prefix="$HOME/.local"
-
-  for arg in "$@"; do
-    case "$arg" in
-    --prefix=*)
-      prefix=$(awk -F'=' '{ print $2; }' <<< "$arg")
-      ;;
-    esac
-  done
-
-  prefix=$(realpath -- "$prefix")
-
-# To build successfully, install packages:
-#   alsa-lib-devel openssl-devel libxcb-devel (on Fedora-based distros)
-#   librust-alsa-sys-dev libssl-dev libxcb1-dev (on Debian-based distros)
-
-  cargo install --locked --force --path "$git_root_dir" --root "$prefix"
-
-  desktop-file-install --dir="$prefix/share/applications" "$git_root_dir/assets/linux/org.squidowl.halloy.desktop"
-
-  cp -r "$git_root_dir/assets/linux/icons" "$prefix/share/"
-
-  mkdir -p "$prefix/share/metainfo"
-  cp "$git_root_dir/assets/linux/org.squidowl.halloy.appdata.xml" "$prefix/share/metainfo/"
-
-  update-desktop-database "$prefix/share/applications"
-  gtk-update-icon-cache -t "$prefix/share/icons/hicolor/"
+# Build dependencies are listed in .github/linux-deps.txt.
+bash "$ROOT/scripts/package-linux.sh" install "$PREFIX"
+update-desktop-database "$PREFIX/share/applications"
+gtk-update-icon-cache -t "$PREFIX/share/icons/hicolor/"

@@ -9,6 +9,7 @@ on:
 
 jobs:
   build:
+    if: github.repository == 'squidowl/halloy'
     name: Build
     permissions:
       actions: write
@@ -20,11 +21,11 @@ jobs:
             os: macos-latest
             make: bash scripts/build-macos.sh
             artifact_path: |
-              echo "ARTIFACT_PATH=target/packaging/halloy.dmg" >> "$GITHUB_ENV"
+              echo "ARTIFACT_PATH=target/packaging/galloy.dmg" >> "$GITHUB_ENV"
           - target: windows
             os: windows-latest
             artifact_path: |
-              echo "ARTIFACT_PATH=target/packaging/halloy-installer.exe" >> $env:GITHUB_ENV
+              echo "ARTIFACT_PATH=target/packaging/galloy-installer.exe" >> $env:GITHUB_ENV
           - target: linux
             os: ubuntu-latest
             make: bash scripts/package-linux.sh package
@@ -79,7 +80,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: windows-unsigned-executable
-          path: target/packaging/halloy.exe
+          path: target/packaging/galloy.exe
           if-no-files-found: error
           retention-days: 1
 
@@ -101,13 +102,13 @@ jobs:
         if: matrix.target.target == 'windows'
         shell: bash
         run: |
-          signed_executable="$(find target/signpath-signed-executable -type f -iname 'halloy.exe' -print -quit)"
+          signed_executable="$(find target/signpath-signed-executable -type f -iname 'galloy.exe' -print -quit)"
           if [ -z "$signed_executable" ]; then
-            echo "Could not find signed halloy.exe in target/signpath-signed-executable" >&2
+            echo "Could not find signed galloy.exe in target/signpath-signed-executable" >&2
             exit 1
           fi
 
-          cp -fp "$signed_executable" target/packaging/halloy.exe
+          cp -fp "$signed_executable" target/packaging/galloy.exe
 
       - name: Delete unsigned Windows executable artifact
         if: matrix.target.target == 'windows'
@@ -125,7 +126,7 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: windows-unsigned-installer
-          path: target/packaging/halloy-installer.exe
+          path: target/packaging/galloy-installer.exe
           if-no-files-found: error
           retention-days: 1
 
@@ -147,13 +148,13 @@ jobs:
         if: matrix.target.target == 'windows'
         shell: bash
         run: |
-          signed_installer="$(find target/signpath-signed-installer -type f -iname 'halloy-installer.exe' -print -quit)"
+          signed_installer="$(find target/signpath-signed-installer -type f -iname 'galloy-installer.exe' -print -quit)"
           if [ -z "$signed_installer" ]; then
-            echo "Could not find signed halloy-installer.exe in target/signpath-signed-installer" >&2
+            echo "Could not find signed galloy-installer.exe in target/signpath-signed-installer" >&2
             exit 1
           fi
 
-          cp -fp "$signed_installer" target/packaging/halloy-installer.exe
+          cp -fp "$signed_installer" target/packaging/galloy-installer.exe
 
       - name: Delete unsigned Windows installer artifact
         if: matrix.target.target == 'windows'
@@ -217,11 +218,11 @@ jobs:
         target:
           - artifact: macos
             artifact_name: |
-              echo "ARTIFACT_NAME=halloy.dmg" >> "$GITHUB_ENV"
+              echo "ARTIFACT_NAME=galloy.dmg" >> "$GITHUB_ENV"
             asset_type: application/octet-stream
           - artifact: windows
             artifact_name: |
-              echo "ARTIFACT_NAME=halloy-installer.exe" >> "$GITHUB_ENV"
+              echo "ARTIFACT_NAME=galloy-installer.exe" >> "$GITHUB_ENV"
             asset_type: application/x-dosexec
           - artifact: linux
             artifact_name: |

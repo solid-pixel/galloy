@@ -160,7 +160,7 @@ impl ReplyPreview {
     pub fn preview_text(&self) -> String {
         match self {
             Self { blocked: true, .. } => {
-                "Message blocked by Halloy configuration".to_string()
+                "Message blocked by Galloy configuration".to_string()
             }
             Self {
                 redaction: Some(r), ..

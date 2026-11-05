@@ -69,6 +69,15 @@ To try Galloy with separate configuration and history, see the
 using `HALLOY_PORTABLE_DIR`. The environment variable retains its Halloy name
 for compatibility.
 
+Windows and Linux packages use their own Galloy application identities, launchers,
+and executables. They can be installed alongside Halloy, but still share its
+configuration and history by default outside a Flatpak sandbox. URL handlers are offered as an option on
+Windows without replacing your existing defaults.
+
+The internal Cargo binary name, `HALLOY_PORTABLE_DIR`, system keyring service,
+and `halloy://` theme links retain their upstream names for compatibility.
+Galloy uses separate runtime IPC endpoints so links are routed to its own process.
+
 ## Project status and AI assistance
 
 Galloy is an experimental fork developed with assistance from AI coding agents.
@@ -83,6 +92,7 @@ private details from any configuration excerpts or logs you share.
 
 ## Documentation and development
 
+- [Packaging and identity](docs/guides/galloy-packaging.md): platform builds, installation, and compatibility.
 - [Settings guide](docs/guides/settings-gui.md): controls, saving behavior, and
   development commands.
 - [Field coverage checklist](docs/guides/settings-gui-coverage.md): GUI coverage

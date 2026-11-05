@@ -12,12 +12,12 @@ fn server_path() -> String {
         .unwrap()
         .as_secs();
 
-    format!("halloy-{nonce}")
+    format!("galloy-{nonce}")
 }
 
 #[cfg(windows)]
 pub fn server_path_register_path() -> PathBuf {
-    data::environment::data_dir().join("ipc.txt")
+    data::environment::data_dir().join("galloy-ipc.txt")
 }
 
 #[cfg(not(windows))]
@@ -30,7 +30,7 @@ pub async fn with_socket_path<T, Fut>(f: impl FnOnce(PathBuf) -> Fut) -> T
 where
     Fut: futures::Future<Output = T>,
 {
-    let file = socket_directory().join("urlserver.sock");
+    let file = socket_directory().join("galloy-urlserver.sock");
     f(file).await
 }
 

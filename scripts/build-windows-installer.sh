@@ -1,9 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-ISS_FILE="inno/halloy.iss"
-HALLOY_VERSION=$(grep -q '\..*\.' VERSION && cat VERSION || echo "$(cat VERSION).0")
-PROFILE="packaging"
+ISS_FILE="inno/galloy.iss"
+GALLOY_VERSION=$(grep -q '\..*\.' VERSION && cat VERSION || echo "$(cat VERSION).0")
+PROFILE=${PROFILE:-packaging}
 NIGHTLY=0
 
 find_iscc() {
@@ -33,16 +33,22 @@ if [ -z "$ISCC_BIN" ]; then
     exit 1
 fi
 
-export HALLOY_VERSION
-export HALLOY_SOURCE_DIR="$PWD"
-export HALLOY_OUTPUT_DIR="$PWD/target/$PROFILE"
+export GALLOY_VERSION
+if command -v cygpath &> /dev/null; then
+    GALLOY_SOURCE_DIR=$(cygpath -w "$PWD")
+    GALLOY_OUTPUT_DIR=$(cygpath -w "$PWD/target/$PROFILE")
+else
+    GALLOY_SOURCE_DIR="$PWD"
+    GALLOY_OUTPUT_DIR="$PWD/target/$PROFILE"
+fi
+export GALLOY_SOURCE_DIR GALLOY_OUTPUT_DIR
 
 if [ "$NIGHTLY" = "1" ]; then
-    DEFAULT_OUTPUT_BASE_FILENAME="halloy-nightly-installer"
+    DEFAULT_OUTPUT_BASE_FILENAME="galloy-nightly-installer"
 else
-    DEFAULT_OUTPUT_BASE_FILENAME="halloy-installer"
+    DEFAULT_OUTPUT_BASE_FILENAME="galloy-installer"
 fi
-export HALLOY_OUTPUT_BASE_FILENAME="${HALLOY_OUTPUT_BASE_FILENAME:-$DEFAULT_OUTPUT_BASE_FILENAME}"
+export GALLOY_OUTPUT_BASE_FILENAME="${GALLOY_OUTPUT_BASE_FILENAME:-$DEFAULT_OUTPUT_BASE_FILENAME}"
 
 # build the installer
 "$ISCC_BIN" "$ISS_FILE"

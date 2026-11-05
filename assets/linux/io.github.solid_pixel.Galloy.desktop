@@ -1,11 +1,11 @@
 [Desktop Entry]
-Name=Halloy
-Comment=IRC client written in Rust
+Name=Galloy
+Comment=IRC client with graphical settings (unofficial Halloy fork)
 Type=Application
 Keywords=IRC;IM;Chat;
 Categories=Network;IRCClient;
-Exec=halloy %U
-Icon=org.squidowl.halloy
-StartupWMClass=org.squidowl.halloy
+Exec=galloy %U
+Icon=io.github.solid_pixel.Galloy
+StartupWMClass=io.github.solid_pixel.Galloy
 MimeType=x-scheme-handler/irc;x-scheme-handler/ircs;x-scheme-handler/halloy;
 Terminal=false

@@ -5,7 +5,7 @@ release_date="$(date +%F)"
 
 changelog_file="CHANGELOG.md"
 version_file="VERSION"
-appdata_file="assets/linux/org.squidowl.halloy.appdata.xml"
+appdata_file="assets/linux/io.github.solid_pixel.Galloy.appdata.xml"
 security_file="SECURITY.md"
 
 VERSION="$version" DATE="$release_date" perl -0pi -e '

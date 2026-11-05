@@ -51,7 +51,10 @@ pub async fn latest_remote_version(
 
     let response = client
         .get(LATEST_REMOTE_RELEASE_URL)
-        .header(reqwest::header::USER_AGENT, "halloy")
+        .header(
+            reqwest::header::USER_AGENT,
+            crate::environment::user_agent(),
+        )
         .header(reqwest::header::ACCEPT, "application/vnd.github.v3+json")
         .send()
         .await

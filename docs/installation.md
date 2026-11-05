@@ -1,5 +1,9 @@
 # Installing Halloy
 
+This inherited guide describes upstream Halloy packages. For Galloy, use
+[Galloy packaging and identity](guides/galloy-packaging.md) and the
+[Galloy releases](https://github.com/solid-pixel/galloy/releases).
+
 ## Pre-built binaries
 
 Download pre-built binaries from [GitHub](https://github.com/squidowl/halloy/releases) page.

@@ -846,7 +846,7 @@ pub fn random_nickname() -> String {
 
 pub fn random_nickname_with_seed<R: Rng>(rng: &mut R) -> String {
     let rand_digit: u16 = rng.random_range(1000..=9999);
-    let rand_nick = format!("halloy{rand_digit}");
+    let rand_nick = format!("galloy{rand_digit}");
 
     rand_nick
 }

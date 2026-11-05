@@ -1,5 +1,10 @@
 # Building for Flatpak
 
+For Galloy, run `scripts/flatpak.sh` with the local manifest
+`assets/flatpak/io.github.solid_pixel.Galloy.json`. See
+[Galloy packaging and identity](galloy-packaging.md). The remaining instructions
+describe upstream Halloy and its Flathub publication.
+
 This guide will help you to build and/or test pre-released commits of Halloy
 for flatpak.
 

@@ -1,13 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
-# Deprecated for now.
-# We should later use it for portable version of Halloy.
+# Builds the executable used by the Galloy installer.
 
 EXE_NAME="halloy.exe"
 TARGET="x86_64-pc-windows-msvc"
 HALLOY_VERSION=$(grep -q '\..*\.' VERSION && cat VERSION || echo "$(cat VERSION).0")
-PROFILE="packaging"
+PROFILE=${PROFILE:-packaging}
 
 # update package version on Cargo.toml
 if ! command -v cargo-set-version &> /dev/null; then
@@ -18,4 +17,5 @@ cargo set-version $HALLOY_VERSION
 # build binary
 rustup target add $TARGET
 cargo build --profile $PROFILE --locked --target=$TARGET
-cp -fp target/$TARGET/$PROFILE/$EXE_NAME target/$PROFILE
+mkdir -p "target/$PROFILE"
+cp -fp "target/$TARGET/$PROFILE/$EXE_NAME" "target/$PROFILE/galloy.exe"

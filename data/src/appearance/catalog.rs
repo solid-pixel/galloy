@@ -69,7 +69,7 @@ async fn fetch_from(
         })?
         .connect_timeout(Duration::from_secs(10))
         .timeout(Duration::from_secs(25))
-        .user_agent(format!("Halloy/{}", crate::environment::VERSION.trim()))
+        .user_agent(crate::environment::user_agent())
         .build()
         .map_err(|error| {
             format!("Could not connect to the theme gallery: {error}")
@@ -367,7 +367,7 @@ mod tests {
                 futures::join!(fetch_from(&url, None), server);
             assert_eq!(themes.unwrap()[0].name, "Test theme");
             assert!(request.starts_with("GET /__data.json HTTP/1.1\r\n"));
-            assert!(request.to_lowercase().contains("user-agent: halloy/"));
+            assert!(request.to_lowercase().contains("user-agent: galloy/"));
         });
     }
 

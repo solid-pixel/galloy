@@ -103,7 +103,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build()?;
 
     let log_stream = logger::setup(logs_config).expect("setup logging");
-    log::info!("halloy {} has started", environment::formatted_version());
+    log::info!("Galloy {} has started", environment::formatted_version());
     log::info!("config dir: {:?}", environment::config_dir());
     log::info!("data dir: {:?}", environment::data_dir());
 

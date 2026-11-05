@@ -7,9 +7,9 @@ APP_NAME="Galloy.app"
 VERSION=$(grep -q '\..*\.' VERSION && cat VERSION || echo "$(cat VERSION).0")
 NIGHTLY=$(cat NIGHTLY)
 if [ "$VERSION" = "$NIGHTLY" ]; then
-  DMG_NAME="halloy-nightly.dmg"
+  DMG_NAME="galloy-nightly.dmg"
 else
-  DMG_NAME="halloy.dmg"
+  DMG_NAME="galloy.dmg"
 fi
 DMG_DIR="$RELEASE_DIR"
 
@@ -17,7 +17,7 @@ DMG_DIR="$RELEASE_DIR"
 echo "Packing disk image..."
 # Remove disk images restored from caches created before DMG output was moved
 # outside the source directory.
-rm -f "$APP_DIR/halloy.dmg" "$APP_DIR/halloy-nightly.dmg"
+rm -f "$APP_DIR/halloy.dmg" "$APP_DIR/halloy-nightly.dmg" "$APP_DIR/galloy.dmg" "$APP_DIR/galloy-nightly.dmg"
 ln -sf /Applications "$APP_DIR/Applications"
 hdiutil create "$DMG_DIR/$DMG_NAME" -volname "Galloy" -fs HFS+ -srcfolder "$APP_DIR" -ov -format UDZO
 echo "Packed '$APP_NAME' in '$DMG_DIR/$DMG_NAME'"

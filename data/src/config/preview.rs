@@ -147,7 +147,7 @@ impl<'de> Deserialize<'de> for Enabled {
 pub struct Request {
     /// Request user agent
     ///
-    /// Defaults to Halloy's name and version so website administrators can
+    /// Defaults to Galloy's name and version so website administrators can
     /// identify and allowlist preview requests.
     pub user_agent: String,
     /// Request timeout in millisceonds
@@ -175,7 +175,7 @@ pub struct Request {
 impl Default for Request {
     fn default() -> Self {
         Self {
-            user_agent: format!("Halloy/{}", environment::VERSION),
+            user_agent: environment::user_agent(),
             timeout_ms: 10 * 1_000,
             max_image_size: 10 * 1024 * 1024,
             max_scrape_size: 500 * 1024,

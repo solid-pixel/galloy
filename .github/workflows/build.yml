@@ -11,6 +11,13 @@ on:
       - ".github/workflows/preview-macos.yml"
       - "scripts/build-macos.sh"
       - "scripts/package-macos-preview.sh"
+      - "scripts/*linux*.sh"
+      - "scripts/*windows*.sh"
+      - "scripts/check-windows-installer.ps1"
+      - "assets/linux/**"
+      - "assets/flatpak/**"
+      - "assets/windows/**"
+      - "inno/**"
   push:
     branches:
       - main
@@ -22,6 +29,13 @@ on:
       - ".github/workflows/preview-macos.yml"
       - "scripts/build-macos.sh"
       - "scripts/package-macos-preview.sh"
+      - "scripts/*linux*.sh"
+      - "scripts/*windows*.sh"
+      - "scripts/check-windows-installer.ps1"
+      - "assets/linux/**"
+      - "assets/flatpak/**"
+      - "assets/windows/**"
+      - "inno/**"
   merge_group:
 
 env:
@@ -100,3 +114,26 @@ jobs:
           tool: cargo-nextest
       - name: Test
         run: cargo nextest run --locked --profile ci --workspace --all-targets
+
+      - name: Verify Linux packaging and Halloy coexistence
+        if: matrix.target.target == 'linux'
+        run: |
+          sudo apt install --yes desktop-file-utils appstream
+          bash scripts/check-linux-package.sh
+
+      - name: Build Windows installer for verification
+        if: matrix.target.target == 'windows'
+        shell: pwsh
+        run: |
+          cargo build --locked --profile ci
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item target/ci/halloy.exe target/ci/galloy.exe
+          $env:ISCC = "${env:ProgramFiles(x86)}/Inno Setup 6/ISCC.exe"
+          $env:PROFILE = "ci"
+          bash scripts/build-windows-installer.sh
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Verify Windows install and uninstall alongside Halloy
+        if: matrix.target.target == 'windows'
+        shell: pwsh
+        run: ./scripts/check-windows-installer.ps1

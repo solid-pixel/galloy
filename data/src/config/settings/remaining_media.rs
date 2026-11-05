@@ -519,7 +519,7 @@ impl Media {
                 "User agent",
                 Control::Text,
                 "",
-                "Empty restores Halloy’s name and version.",
+                "Empty restores Galloy’s name and version.",
             ),
             (
                 MediaArea::Previews,

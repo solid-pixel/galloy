@@ -1706,7 +1706,7 @@ impl Client {
                                                     &query.command,
                                                     user.nickname().to_string(),
                                                     Some(format!(
-                                                        "Halloy {VERSION}"
+                                                        "Galloy {VERSION}"
                                                     )),
                                                 )
                                                 .into(),

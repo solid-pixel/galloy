@@ -1,12 +1,12 @@
 {
-    "app-id": "org.squidowl.halloy",
+    "app-id": "io.github.solid_pixel.Galloy",
     "runtime": "org.freedesktop.Platform",
     "runtime-version": "26.08",
     "sdk": "org.freedesktop.Sdk",
-    "sdk-extensions" : [
+    "sdk-extensions": [
         "org.freedesktop.Sdk.Extension.rust-stable"
     ],
-    "command": "halloy",
+    "command": "galloy",
     "finish-args": [
         "--device=dri",
         "--share=ipc",
@@ -18,30 +18,33 @@
         "--system-talk-name=org.freedesktop.login1"
     ],
     "build-options": {
-        "append-path" : "/usr/lib/sdk/rust-stable/bin"
+        "append-path": "/usr/lib/sdk/rust-stable/bin"
     },
     "modules": [
         {
-            "name": "halloy",
+            "name": "galloy",
             "buildsystem": "simple",
             "build-options": {
                 "env": {
-                    "CARGO_HOME": "/run/build/halloy/cargo"
+                    "CARGO_HOME": "/run/build/galloy/cargo"
                 }
             },
             "build-commands": [
                 "cargo --offline fetch --manifest-path Cargo.toml --verbose",
                 "cargo --offline build --profile packaging --verbose",
                 "mkdir -p /app/share/icons && cp -R ./assets/linux/icons/. /app/share/icons/",
-                "install -Dm644 ./assets/linux/org.squidowl.halloy.appdata.xml /app/share/metainfo/org.squidowl.halloy.appdata.xml",
-                "install -Dm644 ./assets/linux/org.squidowl.halloy.desktop /app/share/applications/org.squidowl.halloy.desktop",
-                "install -Dm755 ./target/packaging/halloy -t /app/bin/"
+                "install -Dm644 ./assets/linux/io.github.solid_pixel.Galloy.appdata.xml /app/share/metainfo/io.github.solid_pixel.Galloy.appdata.xml",
+                "install -Dm644 ./assets/linux/io.github.solid_pixel.Galloy.desktop /app/share/applications/io.github.solid_pixel.Galloy.desktop",
+                "install -Dm755 ./target/packaging/halloy /app/bin/galloy"
             ],
             "sources": [
                 {
                     "type": "dir",
                     "path": "../..",
-                    "skip": ["target", ".git"]
+                    "skip": [
+                        "target",
+                        ".git"
+                    ]
                 },
                 "generated-sources.json"
             ]

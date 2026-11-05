@@ -7,13 +7,18 @@ pub const CONFIG_FILE_NAME: &str = "config.toml";
 #[cfg(target_os = "macos")]
 pub const APPLICATION_ID: &str = "com.solid-pixel.galloy";
 #[cfg(not(target_os = "macos"))]
-pub const APPLICATION_ID: &str = "org.squidowl.halloy";
+pub const APPLICATION_ID: &str = "io.github.solid_pixel.Galloy";
 pub const WIKI_WEBSITE: &str = "https://halloy.chat";
 pub const THEME_WEBSITE: &str = "https://themes.halloy.chat";
-pub const EMAIL: &str = "contact@halloy.chat";
+pub const SUPPORT_WEBSITE: &str =
+    "https://github.com/solid-pixel/galloy/issues";
 pub const RELEASE_WEBSITE: &str =
     "https://github.com/solid-pixel/galloy/releases";
 pub const SOURCE_WEBSITE: &str = "https://github.com/solid-pixel/galloy/";
+
+pub fn user_agent() -> String {
+    format!("Galloy/{}", VERSION.trim())
+}
 
 pub fn formatted_version() -> String {
     let hash = GIT_HASH

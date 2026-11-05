@@ -520,7 +520,7 @@ impl Manager {
             }
             Message::Failed(error) => {
                 log::error!(
-                    "History is not being recorded. New messages are available only in this session. Restart Halloy after resolving: {error}"
+                    "History is not being recorded. New messages are available only in this session. Restart Galloy after resolving: {error}"
                 );
                 self.failure = Some(error);
                 for storage in self.storage.values_mut() {

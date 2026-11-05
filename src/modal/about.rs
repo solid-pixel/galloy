@@ -21,7 +21,7 @@ pub enum Field {
     Vsync,
     Antialiasing,
     All,
-    Mail,
+    Support,
 }
 
 #[derive(Debug, Clone)]
@@ -231,7 +231,11 @@ impl About {
                 container(rule::horizontal(1))
                     .padding([6, 0])
                     .width(Length::Fill),
-                item("Halloy contact", data::environment::EMAIL, Field::Mail),
+                item(
+                    "Report an issue",
+                    data::environment::SUPPORT_WEBSITE,
+                    Field::Support
+                ),
             ],
             column![copy_all, close]
                 .spacing(8)
