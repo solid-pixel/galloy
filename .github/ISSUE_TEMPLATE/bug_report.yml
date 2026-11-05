@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a problem with Galloy.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report problems with this unofficial Halloy fork here. Remove passwords, tokens, private messages, and personal details from logs or configuration excerpts.
+  - type: input
+    id: version
+    attributes:
+      label: Galloy version
+      description: Copy the version and commit from About Galloy.
+      placeholder: "2026.10, commit abc12345"
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Operating system and architecture
+      placeholder: "macOS 27, Apple silicon"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include the settings area and actions that trigger the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Screenshots are welcome.
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Relevant logs or configuration
+      description: Optional. Share only the parts needed to reproduce the problem, with private details removed.
+      render: text

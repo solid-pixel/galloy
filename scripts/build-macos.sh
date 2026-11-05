@@ -14,7 +14,11 @@ APP_EXTRAS_DIR="$APP_DIR/$APP_NAME/Contents/Resources"
 
 VERSION=$(grep -q '\..*\.' VERSION && cat VERSION || echo "$(cat VERSION).0")
 NIGHTLY=$(cat NIGHTLY)
-BUILD=$(git describe --always --dirty --exclude='*')
+if [ -n "${GITHUB_SHA:-}" ]; then
+  BUILD="${GITHUB_SHA:0:8}"
+else
+  BUILD=$(git describe --always --dirty --exclude='*')
+fi
 
 # update version and build
 cp "$ASSETS_DIR/Info.plist.in" "$APP_TEMPLATE_PLIST"

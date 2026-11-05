@@ -1,0 +1,126 @@
+name: macOS Preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "New preview tag, for example 2026.10-gui-preview.5"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-preview-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    name: Build draft macOS preview
+    if: github.repository == 'solid-pixel/galloy' && github.ref == 'refs/heads/main'
+    runs-on: macos-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ inputs.tag }}
+      GH_TOKEN: ${{ github.token }}
+      RUSTUP_TOOLCHAIN: 1.96.0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate the release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^[0-9]{4}\.[0-9]{2}-gui-preview\.[1-9][0-9]*$ ]]
+          [[ "${TAG%-gui-preview.*}" == "$(cat VERSION)" ]]
+          git check-ref-format "refs/tags/$TAG"
+          gh api "repos/$GITHUB_REPOSITORY/releases" --paginate --jq '.[].tag_name' > "$RUNNER_TEMP/release-tags"
+          if grep -Fxq "$TAG" "$RUNNER_TEMP/release-tags"; then
+            echo "This release already exists. Choose a new tag." >&2
+            exit 1
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/$TAG" --jq '.[].ref' > "$RUNNER_TEMP/git-tags"
+          if grep -Fxq "refs/tags/$TAG" "$RUNNER_TEMP/git-tags"; then
+            echo "This tag already exists. Choose a new tag." >&2
+            exit 1
+          fi
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.96.0
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
+
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          shared-key: macos-preview-1.96.0
+
+      - name: Build the universal app
+        run: bash -e scripts/build-macos.sh
+
+      - name: Package and verify the disk image
+        run: bash scripts/package-macos-preview.sh "$TAG"
+
+      - name: Prepare source and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUTPUT="$GITHUB_WORKSPACE/target/packaging/galloy-preview/$TAG"
+          SOURCE="$RUNNER_TEMP/galloy-source"
+          mkdir -p "$SOURCE/Galloy/source"
+          git archive "$GITHUB_SHA" | tar -x -C "$SOURCE/Galloy/source"
+          cat > "$SOURCE/Galloy/BUILD.md" <<EOF
+          # Galloy macOS preview source
+
+          This unofficial, AI-assisted Halloy fork was built from commit $GITHUB_SHA.
+          The source is licensed under GPL-3.0-or-later. See source/LICENSE.
+
+          Install the Xcode Command Line Tools and Rust, then run:
+
+          \`\`\`sh
+          rustup toolchain install 1.96.0
+          cd source
+          export GITHUB_SHA=$GITHUB_SHA
+          export RUSTUP_TOOLCHAIN=1.96.0
+          bash -e scripts/build-macos.sh
+          bash scripts/package-macos-preview.sh $TAG
+          \`\`\`
+
+          Output is in target/packaging/galloy-preview/$TAG.
+          The app is signed ad hoc and is not notarized by Apple.
+          EOF
+          COPYFILE_DISABLE=1 tar -czf "$OUTPUT/Galloy-$TAG-source.tar.gz" -C "$SOURCE" Galloy
+          (cd "$OUTPUT" && shasum -a 256 ./*.dmg ./*.tar.gz > SHA256SUMS.txt && shasum -a 256 -c SHA256SUMS.txt)
+
+      - name: Save build artifacts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: galloy-${{ inputs.tag }}
+          path: target/packaging/galloy-preview/${{ inputs.tag }}/
+          if-no-files-found: error
+
+      - name: Create draft prerelease
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/preview-notes.md" <<EOF
+          **Galloy is an unofficial, AI-assisted fork of [Halloy](https://github.com/squidowl/halloy).**
+
+          This draft was built from [\`${GITHUB_SHA:0:8}\`](https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA).
+          It includes a universal macOS app for Apple silicon and Intel, source with build instructions, and SHA-256 checksums.
+
+          The app is signed ad hoc and has no Apple notarization. macOS may block its first launch.
+          Galloy shares Halloy's default configuration and history locations. Back up config.toml and quit Halloy before using Galloy.
+
+          Build and package verification completed in [GitHub Actions](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID).
+          Complete native Apply/Revert/Close and installation checks, and confirm validation on this commit, before publishing.
+          EOF
+          OUTPUT="target/packaging/galloy-preview/$TAG"
+          gh release create "$TAG" "$OUTPUT"/*.dmg "$OUTPUT"/*.tar.gz "$OUTPUT/SHA256SUMS.txt" \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "Galloy Preview ${TAG##*.} (Unofficial, AI-assisted)" \
+            --notes-file "$RUNNER_TEMP/preview-notes.md" --draft --prerelease --latest=false
