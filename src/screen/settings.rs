@@ -1,7 +1,6 @@
 use data::Config;
 use data::config::settings::{
-    Authentication, Network, Settings as Draft, ThemeMode, ValidationError,
-    ValidationTarget,
+    Network, Settings as Draft, ThemeMode, ValidationError, ValidationTarget,
 };
 use iced::widget::{
     column, container, responsive, row, rule, scrollable, space,
@@ -12,6 +11,8 @@ use crate::widget::{Element, key_press, text, text_input};
 use crate::{Theme, font, open_url, theme, window};
 
 pub mod font_picker;
+mod form;
+use form::group_rows as settings_rows;
 mod keyboard;
 use keyboard::{button, checkbox, pick_list};
 mod preferences;
@@ -46,9 +47,6 @@ pub enum Field {
     Server,
     Port,
     Nickname,
-    Channels,
-    Username,
-    Password,
     FontFamily,
     FontSize,
     LineHeight,
@@ -64,6 +62,7 @@ impl Field {
 #[derive(Debug, Clone)]
 pub enum Message {
     FontsLoaded(Result<Vec<iced::font::Family>, String>),
+    ThemesLoaded(window::Id, u64, Result<Vec<data::Theme>, String>),
     FontsRetry,
     FontOpened(font_picker::Target),
     FontClosed(font_picker::Target),
@@ -79,7 +78,6 @@ pub enum Message {
     Edit(Field, String),
     Tls(bool),
     Autoconnect(bool),
-    Authentication(Authentication),
     ThemeMode(ThemeMode),
     Theme(String),
     BrowseThemes,
@@ -133,6 +131,8 @@ pub struct Settings {
     proxy_state: remaining_networks::State,
     themes: Vec<String>,
     installed_themes: Vec<data::Theme>,
+    theme_request: u64,
+    theme_scan: Option<iced::task::Handle>,
     browser: Option<theme_browser::Browser>,
     preview: Option<Theme>,
     pending_themes: Vec<data::appearance::catalog::Entry>,
@@ -160,7 +160,7 @@ impl Settings {
     pub fn open(
         main: &window::Window,
         config: &Config,
-    ) -> (Self, Task<window::Id>) {
+    ) -> (Self, Task<Message>) {
         let size_scale = theme::scale_for_font_size(&config.font);
         let (window, task) = window::open(window::Settings {
             size: Size::new(880.0, 720.0) * size_scale,
@@ -190,8 +190,7 @@ impl Settings {
             .ok()
             .filter(|draft| !draft.networks.is_empty())
             .map(|_| 0);
-        let installed_themes =
-            data::appearance::catalog::installed(&Config::themes_dir());
+        let installed_themes = config.appearance.all.clone();
         let mut themes = installed_themes
             .iter()
             .map(|theme| theme.name.clone())
@@ -209,34 +208,35 @@ impl Settings {
         }
         themes.sort_by_key(|name| name.to_lowercase());
         themes.dedup();
-        (
-            Self {
-                fonts: font_picker::State::default(),
-                window,
-                draft,
-                section: Section::Networks,
-                preference_group: 0,
-                rule_group: 0,
-                confirm_rule_remove: false,
-                network_states,
-                proxy_state: remaining_networks::State::default(),
-                selected,
-                themes,
-                installed_themes,
-                browser: None,
-                preview: None,
-                pending_themes: vec![],
-                saving: false,
-                status: None,
-                error: None,
-                validation_error: None,
-                confirm_close: false,
-                confirm_remove: false,
-                restart_needed: false,
-                quit_requested: false,
-            },
-            task,
-        )
+        let mut settings = Self {
+            fonts: font_picker::State::default(),
+            window,
+            draft,
+            section: Section::Networks,
+            preference_group: 0,
+            rule_group: 0,
+            confirm_rule_remove: false,
+            network_states,
+            proxy_state: remaining_networks::State::default(),
+            selected,
+            themes,
+            installed_themes,
+            theme_request: 0,
+            theme_scan: None,
+            browser: None,
+            preview: None,
+            pending_themes: vec![],
+            saving: false,
+            status: None,
+            error: None,
+            validation_error: None,
+            confirm_close: false,
+            confirm_remove: false,
+            restart_needed: false,
+            quit_requested: false,
+        };
+        let task = Task::batch([task.discard(), settings.refresh_themes()]);
+        (settings, task)
     }
 
     pub fn accessible_theme(&self, current: &Theme) -> Theme {
@@ -248,16 +248,14 @@ impl Settings {
     }
 
     fn select_theme(&mut self, target: theme_browser::Target, name: String) {
-        let name = self
-            .installed_themes
-            .iter()
-            .find(|theme| theme.name == name)
-            .or_else(|| {
-                self.installed_themes
-                    .iter()
-                    .find(|theme| theme.name.eq_ignore_ascii_case(&name))
-            })
-            .map_or(name.clone(), |theme| theme.name.clone());
+        let name = data::appearance::catalog::matching_name(
+            self.installed_themes
+                .iter()
+                .map(|theme| theme.name.as_str()),
+            &name,
+        )
+        .unwrap_or(&name)
+        .to_owned();
         if let Ok(draft) = &mut self.draft {
             draft.display.themes.mode =
                 data::config::settings::remaining_display::ThemeListMode::Keep;
@@ -299,9 +297,27 @@ impl Settings {
         self.status = None;
     }
 
-    fn refresh_themes(&mut self) {
-        self.installed_themes =
-            data::appearance::catalog::installed(&Config::themes_dir());
+    fn refresh_themes(&mut self) -> Task<Message> {
+        self.theme_request += 1;
+        let request = self.theme_request;
+        let window = self.window;
+        let (task, handle) = Task::perform(
+            async {
+                tokio::task::spawn_blocking(|| {
+                    data::appearance::catalog::installed(&Config::themes_dir())
+                })
+                .await
+                .map_err(|error| error.to_string())
+            },
+            move |result| Message::ThemesLoaded(window, request, result),
+        )
+        .abortable();
+        self.theme_scan = Some(handle.abort_on_drop());
+        task
+    }
+
+    fn themes_loaded(&mut self, themes: Vec<data::Theme>) {
+        self.installed_themes = themes;
         self.themes = self
             .installed_themes
             .iter()
@@ -316,6 +332,13 @@ impl Settings {
                 if !self.themes.contains(name) {
                     self.themes.push(name.clone());
                 }
+            }
+        }
+        for entry in &self.pending_themes {
+            if let Ok(name) = entry.file_stem()
+                && !self.themes.contains(&name)
+            {
+                self.themes.push(name);
             }
         }
         self.themes.sort_by_key(|name| name.to_lowercase());
@@ -333,19 +356,32 @@ impl Settings {
             self.fonts.loaded(result);
             return (Task::none(), None);
         }
-        if self.saving
-            && !matches!(
-                message,
-                Message::Saved(_)
-                    | Message::Browser(
-                        theme_browser::Message::Loaded(_)
-                            | theme_browser::Message::Downloaded(_, _)
-                    )
+        if let Message::ThemesLoaded(window, request, result) = message {
+            if window == self.window && request == self.theme_request {
+                self.theme_scan = None;
+                match result {
+                    Ok(themes) => self.themes_loaded(themes),
+                    Err(error) => {
+                        self.error = Some(format!(
+                            "Could not refresh installed themes: {error}"
+                        ));
+                    }
+                }
+            }
+            return (Task::none(), None);
+        }
+        let completion = matches!(
+            &message,
+            Message::Browser(
+                theme_browser::Message::Loaded(..)
+                    | theme_browser::Message::Downloaded(..)
             )
-        {
+        );
+        if self.saving && !completion && !matches!(message, Message::Saved(_)) {
             return (Task::none(), None);
         }
         if self.confirm_close
+            && !completion
             && !matches!(
                 message,
                 Message::KeepEditing
@@ -358,6 +394,7 @@ impl Settings {
             return (Task::none(), None);
         }
         if self.confirm_remove
+            && !completion
             && !matches!(
                 message,
                 Message::ConfirmRemove
@@ -370,6 +407,7 @@ impl Settings {
             return (Task::none(), None);
         }
         if self.confirm_rule_remove
+            && !completion
             && !matches!(
                 message,
                 Message::RuleConfirmRemove
@@ -387,6 +425,7 @@ impl Settings {
             return self.update(self.escape_message(), proxy);
         }
         if self.extra_confirmation()
+            && !completion
             && !matches!(
                 message,
                 Message::NetworkExtra(
@@ -467,7 +506,7 @@ impl Settings {
             Message::FontsLoaded(_) => unreachable!(),
             Message::BrowseThemes => {
                 self.fonts.active = None;
-                self.refresh_themes();
+                let refresh = self.refresh_themes();
                 let mode = self
                     .draft
                     .as_ref()
@@ -481,6 +520,7 @@ impl Settings {
                 return (
                     Task::batch([
                         task.map(Message::Browser),
+                        refresh,
                         keyboard::focus("settings-gallery-search"),
                     ]),
                     None,
@@ -492,6 +532,7 @@ impl Settings {
                 };
                 let (task, event) = browser.update(message, proxy.cloned());
                 let mut focus = Task::none();
+                let mut refresh = Task::none();
                 match event {
                     Some(theme_browser::Event::Back) => {
                         self.browser = None;
@@ -505,6 +546,7 @@ impl Settings {
                             self.themes.sort_by_key(|name| name.to_lowercase());
                         }
                         self.installed_themes.push(theme);
+                        refresh = self.refresh_themes();
                     }
                     Some(theme_browser::Event::Preview(target, entry)) => {
                         if let Ok(name) = entry.file_stem() {
@@ -512,11 +554,7 @@ impl Settings {
                                 pending.file_stem().ok().as_ref() != Some(&name)
                             });
                             self.pending_themes.push(entry);
-                            if !self
-                                .themes
-                                .iter()
-                                .any(|theme| theme.eq_ignore_ascii_case(&name))
-                            {
+                            if !self.themes.iter().any(|theme| theme == &name) {
                                 self.themes.push(name.clone());
                                 self.themes
                                     .sort_by_key(|name| name.to_lowercase());
@@ -531,7 +569,7 @@ impl Settings {
                     None => {}
                 }
                 return (
-                    Task::batch([task.map(Message::Browser), focus]),
+                    Task::batch([task.map(Message::Browser), focus, refresh]),
                     None,
                 );
             }
@@ -540,7 +578,12 @@ impl Settings {
                 return (keyboard::step(previous), None);
             }
             Message::Saved(result) => {
-                self.refresh_themes();
+                let refresh =
+                    if result.is_ok() && !self.pending_themes.is_empty() {
+                        self.refresh_themes()
+                    } else {
+                        Task::none()
+                    };
                 match result {
                     Ok(source) => {
                         let Ok(draft) = &self.draft else {
@@ -595,7 +638,7 @@ impl Settings {
                         } else { "Settings applied." }.into());
                         self.error = None;
                         self.validation_error = None;
-                        return (Task::none(), Some(Event::Saved));
+                        return (refresh, Some(Event::Saved));
                     }
                     Err(error) => {
                         self.saving = false;
@@ -666,7 +709,7 @@ impl Settings {
                         .position(|g| g.area == area && !g.removed)
                         .unwrap_or(0);
                 }
-                self.refresh_themes();
+                let refresh = self.refresh_themes();
                 self.selected = self
                     .draft
                     .as_ref()
@@ -679,6 +722,7 @@ impl Settings {
                 self.confirm_close = false;
                 self.confirm_remove = false;
                 self.confirm_rule_remove = false;
+                return (refresh, None);
             }
             message => {
                 let Ok(draft) = &mut self.draft else {
@@ -806,7 +850,10 @@ impl Settings {
                     Message::NetworkExtra(index, message) => {
                         if let (Some(state), Some(extra)) = (
                             self.network_states.get_mut(index),
-                            draft.network_extras.get_mut(index),
+                            draft
+                                .networks
+                                .get_mut(index)
+                                .map(|network| &mut network.extra),
                         ) {
                             let focus =
                                 state.update(extra, message).or_else(|| {
@@ -926,14 +973,14 @@ impl Settings {
                     Message::Add => {
                         let mut number = 1;
                         while draft.networks.iter().any(|network| {
-                            network.name == format!("Network {number}")
+                            network.connection.name
+                                == format!("Network {number}")
                         }) {
                             number += 1;
                         }
                         draft
                             .networks
                             .push(Network::new(format!("Network {number}")));
-                        draft.network_extras.push(data::config::settings::remaining_networks::Draft::parse_network("").expect("empty network draft"));
                         self.network_states
                             .push(remaining_networks::State::default());
                         self.selected = Some(draft.networks.len() - 1);
@@ -951,9 +998,6 @@ impl Settings {
                             .filter(|index| *index < draft.networks.len())
                         {
                             draft.networks.remove(index);
-                            if index < draft.network_extras.len() {
-                                draft.network_extras.remove(index);
-                            }
                             if index < self.network_states.len() {
                                 self.network_states.remove(index);
                             }
@@ -977,13 +1021,14 @@ impl Settings {
                                 .and_then(|index| draft.networks.get_mut(index))
                             {
                                 *match field {
-                                    Field::Name => &mut network.name,
-                                    Field::Server => &mut network.server,
-                                    Field::Port => &mut network.port,
-                                    Field::Nickname => &mut network.nickname,
-                                    Field::Channels => &mut network.channels,
-                                    Field::Username => &mut network.username,
-                                    Field::Password => &mut network.password,
+                                    Field::Name => &mut network.connection.name,
+                                    Field::Server => {
+                                        &mut network.connection.server
+                                    }
+                                    Field::Port => &mut network.connection.port,
+                                    Field::Nickname => {
+                                        &mut network.connection.nickname
+                                    }
                                     _ => unreachable!(),
                                 } = value;
                             }
@@ -994,7 +1039,7 @@ impl Settings {
                             .selected
                             .and_then(|index| draft.networks.get_mut(index))
                         {
-                            network.use_tls = value;
+                            network.connection.use_tls = value;
                         }
                     }
                     Message::Autoconnect(value) => {
@@ -1002,19 +1047,7 @@ impl Settings {
                             .selected
                             .and_then(|index| draft.networks.get_mut(index))
                         {
-                            network.autoconnect = value;
-                        }
-                    }
-                    Message::Authentication(value) => {
-                        if let Some(network) = self
-                            .selected
-                            .and_then(|index| draft.networks.get_mut(index))
-                        {
-                            if network.authentication != value {
-                                network.password.clear();
-                                network.username.clear();
-                            }
-                            network.authentication = value;
+                            network.connection.autoconnect = value;
                         }
                     }
                     Message::ThemeMode(value) => {
@@ -1049,68 +1082,69 @@ impl Settings {
                         {
                             return (Task::none(), None);
                         }
-                        if let Some(error) = draft.validation_error() {
-                            let task = self.reveal_validation(error);
-                            return (task, None);
-                        }
-                        if let Err(error) = draft.render() {
-                            self.error = Some(error);
-                        } else {
-                            self.saving = true;
-                            self.confirm_close = false;
-                            let draft = draft.clone();
-                            let pending = self
-                                .pending_themes
-                                .iter()
-                                .filter(|entry| {
-                                    entry.file_stem().is_ok_and(|name| {
-                                        let used = match draft.appearance.mode {
-                                            ThemeMode::Single => {
-                                                name == draft.appearance.theme
-                                            }
-                                            ThemeMode::System => {
-                                                name == draft.appearance.light
-                                                    || name
-                                                        == draft.appearance.dark
-                                            }
-                                            ThemeMode::Configured => draft
-                                                .display
-                                                .themes
-                                                .selected()
-                                                .contains(&name.as_str()),
-                                        };
-                                        used && !self
-                                            .installed_themes
-                                            .iter()
-                                            .any(|theme| {
-                                                theme
-                                                    .name
-                                                    .eq_ignore_ascii_case(&name)
-                                            })
-                                    })
+                        let prepared = match draft.prepare() {
+                            Ok(prepared) => prepared,
+                            Err(error) => {
+                                if let Some(validation) =
+                                    draft.validation_error()
+                                {
+                                    return (
+                                        self.reveal_validation(validation),
+                                        None,
+                                    );
+                                }
+                                self.error = Some(error);
+                                return (Task::none(), None);
+                            }
+                        };
+                        self.saving = true;
+                        self.confirm_close = false;
+                        let pending = self
+                            .pending_themes
+                            .iter()
+                            .filter(|entry| {
+                                entry.file_stem().is_ok_and(|name| {
+                                    let used = match draft.appearance.mode {
+                                        ThemeMode::Single => {
+                                            name == draft.appearance.theme
+                                        }
+                                        ThemeMode::System => {
+                                            name == draft.appearance.light
+                                                || name == draft.appearance.dark
+                                        }
+                                        ThemeMode::Configured => draft
+                                            .display
+                                            .themes
+                                            .selected()
+                                            .contains(&name.as_str()),
+                                    };
+                                    used && !self
+                                        .installed_themes
+                                        .iter()
+                                        .any(|theme| theme.name == name)
                                 })
-                                .cloned()
-                                .collect::<Vec<_>>();
-                            return (
-                                Task::perform(
-                                    async move {
-                                        tokio::task::spawn_blocking(move || {
-                                            for entry in pending {
-                                                entry.install(
-                                                    &Config::themes_dir(),
-                                                )?;
-                                            }
-                                            draft.save_to(&Config::path())
-                                        })
-                                        .await
-                                        .map_err(|error| error.to_string())
-                                        .and_then(|result| result)
-                                    },
-                                    Message::Saved,
-                                ),
-                                None,
-                            );
-                        }
+                            })
+                            .cloned()
+                            .collect::<Vec<_>>();
+                        return (
+                            Task::perform(
+                                async move {
+                                    tokio::task::spawn_blocking(move || {
+                                        for entry in pending {
+                                            entry.install(
+                                                &Config::themes_dir(),
+                                            )?;
+                                        }
+                                        prepared.save_to(&Config::path())
+                                    })
+                                    .await
+                                    .map_err(|error| error.to_string())
+                                    .and_then(|result| result)
+                                },
+                                Message::Saved,
+                            ),
+                            None,
+                        );
                     }
                     _ => {}
                 }
@@ -1138,8 +1172,6 @@ impl Settings {
                     "server" => Field::Server,
                     "nickname" => Field::Nickname,
                     "port" => Field::Port,
-                    "channels" => Field::Channels,
-                    "password" => Field::Password,
                     _ => Field::Name,
                 }
                 .id()
@@ -1168,7 +1200,7 @@ impl Settings {
                 if let (Ok(draft), Some(state)) =
                     (&self.draft, self.network_states.get_mut(index))
                 {
-                    state.reveal(&draft.network_extras[index], data::config::settings::remaining_networks::ValidationError { path: path.clone(), message: error.message.clone() })
+                    state.reveal(&draft.networks[index].extra, data::config::settings::remaining_networks::ValidationError { path: path.clone(), message: error.message.clone() })
                 } else {
                     String::new()
                 }
@@ -1617,7 +1649,7 @@ impl Settings {
         let mut list = column![].spacing(4);
         for (index, network) in draft.networks.iter().enumerate() {
             list = list.push(tab(
-                &network.name,
+                &network.connection.name,
                 self.selected == Some(index),
                 Message::Select(index),
             ));
@@ -1660,7 +1692,7 @@ impl Settings {
                 self.field_with_layout(
                     "Network name",
                     "e.g. Libera",
-                    &network.name,
+                    &network.connection.name,
                     Field::Name,
                     false,
                     stacked,
@@ -1668,7 +1700,7 @@ impl Settings {
                 self.field_with_layout(
                     "Server",
                     "irc.libera.chat",
-                    &network.server,
+                    &network.connection.server,
                     Field::Server,
                     false,
                     stacked,
@@ -1680,12 +1712,12 @@ impl Settings {
                         row![
                             container(input_field(
                                 "Automatic",
-                                &network.port,
+                                &network.connection.port,
                                 Field::Port,
                                 false
                             ))
                             .width(104),
-                            checkbox(network.use_tls)
+                            checkbox(network.connection.use_tls)
                                 .label("Use TLS")
                                 .on_toggle(Message::Tls)
                                 .style(style::checkbox),
@@ -1700,19 +1732,19 @@ impl Settings {
                 self.field_with_layout(
                     "Nickname",
                     "Your nickname",
-                    &network.nickname,
+                    &network.connection.nickname,
                     Field::Nickname,
                     false,
                     stacked,
                 ),
-                checkbox(network.autoconnect)
+                checkbox(network.connection.autoconnect)
                     .label("Connect automatically on launch")
                     .on_toggle(Message::Autoconnect)
                     .style(style::checkbox)
                     .into(),
             ];
             let mut form = column![
-                text(&network.name)
+                text(&network.connection.name)
                     .font(font::PRIMARY_BOLD.clone())
                     .size(16),
                 settings_group("Connection", connection),
@@ -1721,7 +1753,7 @@ impl Settings {
             if let Some(index) = self.selected
                 && let (Some(state), Some(extra)) = (
                     self.network_states.get(index),
-                    draft.network_extras.get(index),
+                    draft.networks.get(index).map(|network| &network.extra),
                 )
             {
                 if state.confirmation_open() {
@@ -1740,7 +1772,7 @@ impl Settings {
                 form = column![background]
                     .push(text(format!(
                         "Remove ‘{}’? Applying will disconnect it.",
-                        network.name
+                        network.connection.name
                     )))
                     .push(
                         row![
@@ -1820,9 +1852,6 @@ impl Settings {
             Field::Server => "server",
             Field::Port => "port",
             Field::Nickname => "nickname",
-            Field::Channels => "channels",
-            Field::Username => "username",
-            Field::Password => "password",
             Field::FontFamily => "font_family",
             Field::FontSize => "font_size",
             Field::LineHeight => "line_height",
@@ -2097,24 +2126,6 @@ fn settings_group<'a>(
     .into()
 }
 
-fn settings_rows<'a>(rows: Vec<Element<'a, Message>>) -> Element<'a, Message> {
-    let mut content = column![].spacing(0);
-    for (index, row) in rows.into_iter().enumerate() {
-        if index > 0 {
-            content = content.push(
-                container(rule::horizontal(1))
-                    .padding(iced::padding::horizontal(12)),
-            );
-        }
-        content =
-            content.push(container(row).padding([8, 12]).width(Length::Fill));
-    }
-    container(content)
-        .width(Length::Fill)
-        .style(style::pane)
-        .into()
-}
-
 fn action<'a, M: Clone + 'a>(label: &'a str, message: M) -> Element<'a, M> {
     button(text(label))
         .id(format!("settings-action-{label}"))
@@ -2194,8 +2205,7 @@ fn field_with_layout<'a>(
         Field::Port | Field::FontSize | Field::LineHeight | Field::Scale => {
             104.0
         }
-        Field::Nickname | Field::Username => 240.0,
-        Field::Channels => 420.0,
+        Field::Nickname => 240.0,
         Field::Server => 360.0,
         _ => 300.0,
     };
@@ -2244,23 +2254,7 @@ fn labelled_with_layout<'a>(
     max_width: f32,
     stacked: bool,
 ) -> Element<'a, Message> {
-    if stacked {
-        return column![
-            text(label),
-            container(control).width(Length::Fill.max(max_width))
-        ]
-        .spacing(4)
-        .width(Length::Fill)
-        .into();
-    }
-    row![
-        text(label).width(160),
-        container(control).width(Length::Fill.max(max_width))
-    ]
-    .spacing(12)
-    .align_y(Alignment::Center)
-    .width(Length::Fill)
-    .into()
+    form::labelled_layout(label, control, max_width, 160.0, stacked)
 }
 
 fn input_style(
@@ -2301,6 +2295,8 @@ mod tests {
             selected: None,
             themes: vec!["Ferra".into()],
             installed_themes,
+            theme_request: 0,
+            theme_scan: None,
             browser: Some(browser),
             preview: None,
             pending_themes: vec![],
@@ -2313,6 +2309,91 @@ mod tests {
             restart_needed: false,
             quit_requested: false,
         }
+    }
+
+    fn loaded(settings: &Settings, entries: Vec<Entry>) -> Message {
+        Message::Browser(theme_browser::Message::Loaded(
+            settings.browser.as_ref().unwrap().load_id(),
+            Ok(entries),
+        ))
+    }
+
+    #[test]
+    fn download_completion_releases_apply_during_close_confirmation() {
+        let mut settings = settings("theme='ferra'\n");
+        let theme = entry(1, "Downloaded theme", iced::Color::WHITE);
+        let _ = settings.update(loaded(&settings, vec![theme.clone()]), None);
+        let _ = settings
+            .update(Message::Browser(theme_browser::Message::Select(1)), None);
+        let _ = settings
+            .update(Message::Browser(theme_browser::Message::Download), None);
+        let browser = settings.browser.as_ref().unwrap().id();
+        assert!(settings.browser.as_ref().unwrap().is_downloading());
+        let _ = settings.update(Message::Close, None);
+        let _ = settings.update(
+            Message::Browser(theme_browser::Message::Downloaded(
+                browser,
+                1,
+                Ok(data::Theme::new(theme.name.clone(), theme.styles)),
+            )),
+            None,
+        );
+        assert!(settings.confirm_close);
+        let _ = settings.update(Message::KeepEditing, None);
+        assert!(!settings.browser.as_ref().unwrap().is_downloading());
+        assert!(
+            settings
+                .installed_themes
+                .iter()
+                .any(|t| t.name == "Downloaded theme")
+        );
+    }
+
+    #[test]
+    fn theme_discovery_ignores_old_windows_and_requests() {
+        let mut settings = settings("");
+        let own_window = settings.window;
+        settings.theme_request = 2;
+        let _ = settings.update(
+            Message::ThemesLoaded(window::Id::unique(), 2, Ok(vec![])),
+            None,
+        );
+        let _ = settings
+            .update(Message::ThemesLoaded(own_window, 1, Ok(vec![])), None);
+        assert!(!settings.installed_themes.is_empty());
+        settings.confirm_close = true;
+        let _ = settings.update(
+            Message::ThemesLoaded(
+                own_window,
+                2,
+                Ok(vec![data::Theme::new(
+                    "New local".into(),
+                    data::appearance::theme::Styles::default(),
+                )]),
+            ),
+            None,
+        );
+        assert_eq!(settings.installed_themes[0].name, "New local");
+        assert!(settings.confirm_close);
+    }
+
+    #[test]
+    fn gallery_completion_is_processed_while_discard_confirmation_is_open() {
+        let mut settings = settings("theme='ferra'\n");
+        let _ =
+            settings.update(Message::Edit(Field::FontSize, "14".into()), None);
+        let _ = settings.update(Message::Close, None);
+        assert!(settings.confirm_close);
+        let completion =
+            loaded(&settings, vec![entry(1, "New theme", iced::Color::WHITE)]);
+        let _ = settings.update(completion, None);
+        let _ = settings.update(Message::KeepEditing, None);
+        let _ = settings
+            .update(Message::Browser(theme_browser::Message::Select(1)), None);
+        assert_eq!(
+            settings.draft.as_ref().unwrap().appearance.theme,
+            "New theme"
+        );
     }
 
     #[test]
@@ -2434,13 +2515,10 @@ mod tests {
     fn gallery_selection_previews_uninstalled_theme_and_enables_apply() {
         let mut settings = settings("theme = 'Ferra'\n");
         let current = Theme::default();
-        let _ =
-            settings.update(
-                Message::Browser(theme_browser::Message::Loaded(Ok(vec![
-                    entry(1, "New theme", iced::Color::WHITE),
-                ]))),
-                None,
-            );
+        let _ = settings.update(
+            loaded(&settings, vec![entry(1, "New theme", iced::Color::WHITE)]),
+            None,
+        );
         assert!(!settings.draft.as_ref().unwrap().is_dirty());
         assert!(std::ptr::eq(settings.preview_theme(&current), &current));
         let _ = settings
@@ -2466,10 +2544,13 @@ mod tests {
         let mut settings =
             settings("theme = { light = 'Ferra', dark = 'Ferra' }\n");
         let _ = settings.update(
-            Message::Browser(theme_browser::Message::Loaded(Ok(vec![
-                entry(1, "New light", iced::Color::WHITE),
-                entry(2, "New dark", iced::Color::BLACK),
-            ]))),
+            loaded(
+                &settings,
+                vec![
+                    entry(1, "New light", iced::Color::WHITE),
+                    entry(2, "New dark", iced::Color::BLACK),
+                ],
+            ),
             None,
         );
         let _ = settings
@@ -2757,7 +2838,8 @@ mod tests {
         let _ =
             settings.update(Message::Edit(Field::Nickname, "qa".into()), None);
         let draft = settings.draft.as_ref().unwrap();
-        let index = draft.network_extras[0]
+        let index = draft.networks[0]
+            .extra
             .fields
             .iter()
             .position(|field| field.path == vec![Part::Key("ping_time".into())])
@@ -2787,7 +2869,7 @@ mod tests {
         let _ = settings.update(Message::Remove, None);
         let _ = settings.update(Message::ConfirmRemove, None);
         assert!(settings.network_states.is_empty());
-        assert!(settings.draft.as_ref().unwrap().network_extras.is_empty());
+        assert!(settings.draft.as_ref().unwrap().networks.is_empty());
     }
 
     #[test]
@@ -2884,7 +2966,8 @@ mod tests {
         );
         settings.section = Section::Networks;
         settings.selected = Some(0);
-        let path = settings.draft.as_ref().unwrap().network_extras[0]
+        let path = settings.draft.as_ref().unwrap().networks[0]
+            .extra
             .collections
             .iter()
             .find(|collection| collection.kind == Rows::Ignore)

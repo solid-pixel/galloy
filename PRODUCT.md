@@ -1,4 +1,4 @@
-# Halloy settings GUI fork
+# Galloy settings GUI
 
 This fork extends Halloy with graphical editing for every supported configuration
 area: General, Networks, Proxies, Appearance, Navigation and panes, Chat display,
@@ -94,12 +94,14 @@ Preference areas show the selected group's rows together. Group headings and
 space between groups provide hierarchy without glass effects. Draft status,
 Revert, Apply, and Close remain below the scrolling content.
 
-No change to Halloy’s brand, chat layout, IRC engine, or configuration format is
-part of this request. The fork keeps the upstream license and attribution.
+Galloy uses its own Blackberry bird artwork and macOS bundle identity. It keeps
+Halloy’s chat layout, IRC engine, configuration format, license and attribution.
+Existing Halloy configuration and history locations remain shared for compatibility.
 
 ## Configuration coverage
 
-The [model checklist](docs/guides/settings-gui-coverage.md) inventories all 528
-public configuration model fields, including nested containers and runtime
-projections, plus tagged formats and bouncer overrides. Runtime-only server order
-has no numeric setting. Platform/build availability remains explicit.
+The [coverage guide](docs/guides/settings-gui-coverage.md) maps configuration
+families to forms, lists nested model fields, and identifies runtime projections.
+Its inventory supports review alongside the linked regression tests and native
+verification procedure. Runtime-only server order has no numeric setting.
+Platform/build availability remains explicit.

@@ -5,9 +5,10 @@ use data::config::settings::remaining_display::{
     DisplayEditors, OpacityKind, OpacityMode, RepeatMode, Target,
     ThemeListMode, ValidationError,
 };
-use iced::widget::{column, container, row, rule};
+use iced::widget::{column, container, row};
 use iced::{Alignment, Length};
 
+use super::form::{group_rows as group, labelled};
 use super::keyboard::{button, checkbox, pick_list};
 use super::style;
 use crate::widget::{Element, text, text_input};
@@ -233,20 +234,6 @@ fn action<'a>(
         .on_press(message)
         .into()
 }
-fn labelled<'a>(
-    label: &'a str,
-    widget: Element<'a, Event>,
-    width: f32,
-) -> Element<'a, Event> {
-    row![
-        text(label).width(160),
-        container(widget).width(Length::Fill.max(width))
-    ]
-    .spacing(12)
-    .align_y(Alignment::Center)
-    .width(Length::Fill)
-    .into()
-}
 fn input<'a>(
     id: String,
     value: &'a str,
@@ -276,23 +263,6 @@ fn picker<'a>(
         .style(style::pick_list)
         .menu_style(style::menu)
         .width(Length::Fill)
-        .into()
-}
-fn group<'a>(rows: Vec<Element<'a, Event>>) -> Element<'a, Event> {
-    let mut content = column![].spacing(0);
-    for (index, widget) in rows.into_iter().enumerate() {
-        if index > 0 {
-            content = content.push(
-                container(rule::horizontal(1))
-                    .padding(iced::padding::horizontal(12)),
-            );
-        }
-        content = content
-            .push(container(widget).padding([8, 12]).width(Length::Fill));
-    }
-    container(content)
-        .width(Length::Fill)
-        .style(style::pane)
         .into()
 }
 fn error(

@@ -87,8 +87,9 @@ The last selection previews regardless of system appearance; applying resumes
 the configured system behavior.
 
 The gallery needs an internet connection. A failed request offers **Try again**
-and a link to the gallery website. Theme files installed manually are picked up
-when Settings is reopened.
+and a link to the gallery website. Theme files installed manually are discovered in the background when Settings is
+opened, reverted, or the theme browser is opened. Exact filenames identify themes;
+case-insensitive name matching is used only when there is one matching file.
 Gallery requests use the current global proxy setting. With Halloy's built-in
 Tor proxy, gallery requests are unavailable; they do not fall back to a direct connection.
 
@@ -234,7 +235,8 @@ button, paste and file drop. Per-network endpoints and credentials are in Networ
 Press **Apply** or **⌘S / Ctrl+S** to validate, save, and reload the configuration.
 If a field is invalid, Settings opens its section, focuses the field, and shows
 the correction beside it. The error stays visible until it is corrected.
-Settings edits the original TOML document, retaining other settings and comments.
+Settings prepares a validated update to the original TOML document, retaining
+other settings and comments, then saves that prepared update.
 The previous file is backed up next to it as `config.toml.settings-backup`.
 Symlinked configurations update their actual target, with the backup beside it.
 

@@ -2092,7 +2092,7 @@ impl Halloy {
             settings::Settings::open(&self.main_window, &self.config);
         self.settings_window = Some(settings);
         Task::batch([
-            task.discard(),
+            task.map(Message::Settings),
             settings::font_picker::load().map(Message::Settings),
         ])
     }

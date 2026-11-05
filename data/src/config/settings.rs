@@ -15,66 +15,20 @@ use toml_edit::{DocumentMut, Item, Key, Table, TableLike, Value, value};
 
 use super::{Config, keyring};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Authentication {
-    None,
-    Sasl,
-    NickServ,
-    Advanced,
-}
-
-impl std::fmt::Display for Authentication {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(match self {
-            Self::None => "None",
-            Self::Sasl => "SASL PLAIN",
-            Self::NickServ => "NickServ",
-            Self::Advanced => "Configured in file",
-        })
-    }
-}
-
 #[derive(Clone, PartialEq, Eq)]
-pub struct Network {
+pub struct Connection {
     pub original_name: Option<String>,
     pub name: String,
     pub server: String,
     pub port: String,
     pub nickname: String,
-    pub channels: String,
     pub use_tls: bool,
     pub autoconnect: bool,
-    pub authentication: Authentication,
-    pub username: String,
-    pub password: String,
 }
 
-impl Network {
+impl Connection {
     fn from_table(name: &str, table: &dyn TableLike) -> Self {
         let string = |key| string_at(table.get(key));
-        let sasl = table.get("sasl").and_then(Item::as_table_like);
-        let plain = sasl
-            .and_then(|sasl| sasl.get("plain"))
-            .and_then(Item::as_table_like);
-        let external_secret = |table: &dyn TableLike, prefix: &str| {
-            ["file", "command", "keyring"]
-                .iter()
-                .any(|suffix| table.contains_key(&format!("{prefix}_{suffix}")))
-        };
-        let advanced = table.contains_key("sasl") && plain.is_none()
-            || external_secret(table, "nick_password")
-            || plain.is_some_and(|plain| external_secret(plain, "password"))
-            || table.contains_key("sasl")
-                && table.contains_key("nick_password");
-        let authentication = if advanced {
-            Authentication::Advanced
-        } else if plain.is_some() {
-            Authentication::Sasl
-        } else if table.contains_key("nick_password") {
-            Authentication::NickServ
-        } else {
-            Authentication::None
-        };
         Self {
             original_name: Some(name.to_owned()),
             name: name.to_owned(),
@@ -90,17 +44,6 @@ impl Network {
                 .and_then(Item::as_str)
                 .unwrap_or_default()
                 .to_owned(),
-            channels: table
-                .get("channels")
-                .and_then(Item::as_array)
-                .map(|channels| {
-                    channels
-                        .iter()
-                        .filter_map(channel_name)
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                })
-                .unwrap_or_default(),
             use_tls: table
                 .get("use_tls")
                 .and_then(Item::as_bool)
@@ -109,9 +52,6 @@ impl Network {
                 .get("autoconnect")
                 .and_then(Item::as_bool)
                 .unwrap_or(true),
-            authentication,
-            username: String::new(),
-            password: String::new(),
         }
     }
 
@@ -122,12 +62,23 @@ impl Network {
             server: String::new(),
             port: String::new(),
             nickname: String::new(),
-            channels: String::new(),
             use_tls: true,
             autoconnect: true,
-            authentication: Authentication::None,
-            username: String::new(),
-            password: String::new(),
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct Network {
+    pub connection: Connection,
+    pub extra: remaining_networks::Draft,
+}
+impl Network {
+    pub fn new(name: String) -> Self {
+        Self {
+            connection: Connection::new(name),
+            extra: remaining_networks::Draft::parse_network("")
+                .expect("empty network draft"),
         }
     }
 }
@@ -165,7 +116,8 @@ pub struct Appearance {
 #[derive(Clone)]
 pub struct Settings {
     source: String,
-    original_networks: Vec<Network>,
+    document: DocumentMut,
+    original_networks: Vec<Connection>,
     original_appearance: Appearance,
     pub networks: Vec<Network>,
     pub appearance: Appearance,
@@ -174,7 +126,6 @@ pub struct Settings {
     pub media: remaining_media::Media,
     pub general: remaining_general::Draft,
     pub display: remaining_display::DisplayEditors,
-    pub network_extras: Vec<remaining_networks::Draft>,
     pub global_proxy: remaining_networks::Draft,
 }
 
@@ -229,8 +180,10 @@ impl Settings {
                 servers
                     .iter()
                     .filter_map(|(name, item)| {
-                        item.as_table_like()
-                            .map(|table| Network::from_table(name, table))
+                        item.as_table_like().map(|table| Network {
+                            connection: Connection::from_table(name, table),
+                            extra: remaining_networks::Draft::network(table),
+                        })
                     })
                     .collect::<Vec<_>>()
             })
@@ -284,23 +237,14 @@ impl Settings {
                 .unwrap_or("left")
                 .to_owned(),
         };
-        let network_extras = document
-            .get("servers")
-            .and_then(Item::as_table_like)
-            .map(|servers| {
-                servers
-                    .iter()
-                    .filter_map(|(_, item)| {
-                        item.as_table_like()
-                            .map(remaining_networks::Draft::network)
-                    })
-                    .collect()
-            })
-            .unwrap_or_default();
         let preferences = preferences::Preferences::parse(&document)?;
         Ok(Self {
             source,
-            original_networks: networks.clone(),
+            document: document.clone(),
+            original_networks: networks
+                .iter()
+                .map(|network| network.connection.clone())
+                .collect(),
             original_appearance: appearance.clone(),
             networks,
             appearance,
@@ -309,13 +253,12 @@ impl Settings {
             media: remaining_media::Media::parse(&document)?,
             general: remaining_general::Draft::parse(&document)?,
             display: remaining_display::DisplayEditors::parse(&document)?,
-            network_extras,
             global_proxy: remaining_networks::Draft::global_proxy(&document),
         })
     }
 
     pub fn is_dirty(&self) -> bool {
-        self.networks != self.original_networks
+        self.connections_changed()
             || self.appearance != self.original_appearance
             || self.preferences.is_dirty()
             || self.rules.is_dirty()
@@ -323,18 +266,14 @@ impl Settings {
             || self.general.is_dirty()
             || self.display.is_dirty()
             || self.global_proxy.is_dirty()
-            || self
-                .network_extras
-                .iter()
-                .any(remaining_networks::Draft::is_dirty)
+            || self.networks.iter().any(|network| network.extra.is_dirty())
     }
 
-    pub fn font_changed(&self) -> bool {
-        let a = &self.appearance;
-        let b = &self.original_appearance;
-        a.font_family != b.font_family
-            || a.font_size != b.font_size
-            || a.line_height != b.line_height
+    fn connections_changed(&self) -> bool {
+        self.networks
+            .iter()
+            .map(|network| &network.connection)
+            .ne(self.original_networks.iter())
     }
 
     /// Startup-only options need a fresh application process after saving.
@@ -349,30 +288,30 @@ impl Settings {
     }
 
     pub fn networks_changed(&self) -> bool {
-        self.network_extras
-            .iter()
-            .any(remaining_networks::Draft::is_dirty)
-            || self.networks != self.original_networks
+        self.networks.iter().any(|network| network.extra.is_dirty())
+            || self.connections_changed()
     }
 
     pub fn has_configured_theme(&self) -> bool {
         self.original_appearance.mode == ThemeMode::Configured
     }
 
-    pub fn has_advanced_authentication(&self, network: &Network) -> bool {
-        self.original_networks.iter().any(|original| {
-            Some(&original.name) == network.original_name.as_ref()
-                && original.authentication == Authentication::Advanced
-        })
-    }
-
     pub fn validation_error(&self) -> Option<ValidationError> {
         self.validate_fields().err()
+    }
+
+    fn media_changed(&self) -> bool {
+        self.media.is_dirty()
+            || self.preferences.fields.iter().any(|field| {
+                field.spec.path == "file_transfer.auto_accept.enabled"
+                    && field.value != field.original_value()
+            })
     }
 
     fn validate_fields(&self) -> Result<(), ValidationError> {
         let mut names = HashSet::new();
         for (index, network) in self.networks.iter().enumerate() {
+            let network = &network.connection;
             let invalid = |field, message| ValidationError {
                 message,
                 target: ValidationTarget::Network { index, field },
@@ -437,50 +376,13 @@ impl Settings {
                     ),
                 ));
             }
-            for channel in channels(&network.channels) {
-                if !channel.starts_with(['#', '&', '+', '!'])
-                    || channel.contains(['\0', '\u{7}', ':'])
-                {
-                    return Err(invalid(
-                        "channels",
-                        format!(
-                            "{}: channels must start with #, &, + or !.",
-                            network.name
-                        ),
-                    ));
-                }
-            }
-            if matches!(
-                network.authentication,
-                Authentication::Sasl | Authentication::NickServ
-            ) && network.password.is_empty()
-                && self
-                    .original_networks
-                    .iter()
-                    .find(|old| {
-                        Some(&old.name) == network.original_name.as_ref()
-                    })
-                    .is_none_or(|old| {
-                        old.authentication != network.authentication
-                            || old.password != network.password
-                            || old.username != network.username
-                    })
-            {
-                return Err(invalid(
-                    "password",
-                    format!(
-                        "{}: enter an authentication password or choose None.",
-                        network.name
-                    ),
-                ));
-            }
         }
-        for (index, extra) in self.network_extras.iter().enumerate() {
-            if let Some(error) = extra.validation_error() {
+        for (index, network) in self.networks.iter().enumerate() {
+            if let Some(error) = network.extra.validation_error() {
                 return Err(ValidationError {
                     message: format!(
                         "{}: {}",
-                        self.networks[index].name, error.message
+                        self.networks[index].connection.name, error.message
                     ),
                     target: ValidationTarget::NetworkExtra {
                         index,
@@ -513,9 +415,8 @@ impl Settings {
             interface_scale(&a.scale_factor)
                 .map_err(|message| invalid("scale_factor", message))?;
         }
-        if let Ok(document) = self.source.parse::<DocumentMut>()
-            && let Some((index, message)) =
-                self.preferences.validation_error(&document)
+        if let Some((index, message)) =
+            self.preferences.validation_error(&self.document)
         {
             return Err(ValidationError {
                 message,
@@ -530,6 +431,7 @@ impl Settings {
             .filter(|(_, rule)| !rule.removed)
         {
             if let Some(conditions) = &rule.conditions
+                && conditions.is_dirty()
                 && let Some(error) =
                     conditions.validation_error(&DocumentMut::new())
             {
@@ -542,28 +444,33 @@ impl Settings {
                 });
             }
         }
-        if let Ok(document) = self.source.parse::<DocumentMut>()
-            && let Some((group, field, message)) =
-                self.rules.validation_error(&document)
+        if let Some((group, field, message)) =
+            self.rules.validation_error(&self.document)
         {
             return Err(ValidationError {
                 message,
                 target: ValidationTarget::Rule { group, field },
             });
         }
-        if let Ok(mut document) = self.source.parse::<DocumentMut>() {
+        if self.media_changed()
+            || self.general.is_dirty()
+            || self.display.is_dirty()
+        {
+            let mut document = self.document.clone();
             self.preferences
                 .render_into(&mut document)
                 .map_err(|message| ValidationError {
                     message,
                     target: ValidationTarget::Media(0),
                 })?;
-            self.media.render_into(&mut document).map_err(|error| {
-                ValidationError {
-                    message: error.message,
-                    target: ValidationTarget::Media(error.field),
-                }
-            })?;
+            if self.media_changed() {
+                self.media.render_into(&mut document).map_err(|error| {
+                    ValidationError {
+                        message: error.message,
+                        target: ValidationTarget::Media(error.field),
+                    }
+                })?;
+            }
             self.general.validate(&document).map_err(|error| {
                 ValidationError {
                     message: error.message,
@@ -582,14 +489,13 @@ impl Settings {
 
     pub fn render(&self) -> Result<String, String> {
         self.validate_fields().map_err(|error| error.message)?;
-        let mut document = self
-            .source
-            .parse::<DocumentMut>()
-            .map_err(|error| error.to_string())?;
+        let mut document = self.document.clone();
         if self.networks_changed() {
             let original_document = document.clone();
             table(&mut document, "servers")?.clear();
-            for (network_index, network) in self.networks.iter().enumerate() {
+            for network in &self.networks {
+                let extra = &network.extra;
+                let network = &network.connection;
                 let old = self.original_networks.iter().find(|old| {
                     Some(&old.name) == network.original_name.as_ref()
                 });
@@ -637,78 +543,7 @@ impl Settings {
                         );
                     }
                 }
-                if old.is_none_or(|old| old.channels != network.channels) {
-                    let previous = target
-                        .get("channels")
-                        .and_then(Item::as_array)
-                        .cloned()
-                        .unwrap_or_default();
-                    let mut array = toml_edit::Array::new();
-                    for name in channels(&network.channels) {
-                        array.push(
-                            previous
-                                .iter()
-                                .find(|value| channel_name(value) == Some(name))
-                                .cloned()
-                                .unwrap_or_else(|| Value::from(name)),
-                        );
-                    }
-                    set(target, "channels", value(array));
-                }
-                let auth_changed = old.is_none_or(|old| {
-                    old.authentication != network.authentication
-                });
-                if auth_changed {
-                    for key in [
-                        "sasl",
-                        "nick_password",
-                        "nick_password_file",
-                        "nick_password_command",
-                        "nick_password_keyring",
-                    ] {
-                        target.remove(key);
-                    }
-                }
-                match network.authentication {
-                    Authentication::Sasl => {
-                        if auth_changed
-                            || old.is_none_or(|old| {
-                                old.username != network.username
-                                    || old.password != network.password
-                            })
-                        {
-                            let sasl = child_table(target, "sasl")?;
-                            let plain = child_table(sasl, "plain")?;
-                            if network.username.is_empty() {
-                                plain.remove("username");
-                            } else {
-                                set(
-                                    plain,
-                                    "username",
-                                    value(&network.username),
-                                );
-                            }
-                            set(plain, "password", value(&network.password));
-                        }
-                    }
-                    Authentication::NickServ => {
-                        if auth_changed
-                            || old.is_none_or(|old| {
-                                old.password != network.password
-                            })
-                        {
-                            set(
-                                target,
-                                "nick_password",
-                                value(&network.password),
-                            );
-                        }
-                    }
-                    Authentication::None | Authentication::Advanced => {}
-                }
-                if let Some(extra) = self.network_extras.get(network_index) {
-                    extra.render_into(target).map_err(|error| error.message)?;
-                }
+                extra.render_into(target).map_err(|error| error.message)?;
                 if let Some(old) = old
                     && old.name != network.name
                 {
@@ -808,16 +643,24 @@ impl Settings {
             );
         }
         self.preferences.render_into(&mut document)?;
-        self.media
-            .render_into(&mut document)
-            .map_err(|error| error.message)?;
-        self.general
-            .render_into(&mut document)
-            .map_err(|error| error.message)?;
-        self.display.render_into(&mut document)?;
-        self.rules
-            .render_into(&mut document)
-            .map_err(|(_, _, message)| message)?;
+        if self.media_changed() {
+            self.media
+                .render_into(&mut document)
+                .map_err(|error| error.message)?;
+        }
+        if self.general.is_dirty() {
+            self.general
+                .render_into(&mut document)
+                .map_err(|error| error.message)?;
+        }
+        if self.display.is_dirty() {
+            self.display.render_into(&mut document)?;
+        }
+        if self.rules.is_dirty() {
+            self.rules
+                .render_into(&mut document)
+                .map_err(|(_, _, message)| message)?;
+        }
         self.global_proxy
             .render_into(document.as_table_mut())
             .map_err(|error| error.message)?;
@@ -826,10 +669,28 @@ impl Settings {
         Ok(contents)
     }
 
+    pub fn prepare(&self) -> Result<PreparedSave, String> {
+        Ok(PreparedSave {
+            source: self.source.clone(),
+            contents: self.render()?,
+        })
+    }
+
+    pub fn save_to(&self, path: &Path) -> Result<String, String> {
+        self.prepare()?.save_to(path)
+    }
+}
+
+pub struct PreparedSave {
+    source: String,
+    contents: String,
+}
+
+impl PreparedSave {
     /// Compare before replacing, use a same-directory atomic rename, and keep
     /// the previous configuration available for recovery. No credentials resolve.
-    pub fn save_to(&self, path: &Path) -> Result<String, String> {
-        let contents = self.render()?;
+    pub fn save_to(self, path: &Path) -> Result<String, String> {
+        let contents = self.contents;
         let resolved_path =
             path.canonicalize().map_err(|error| error.to_string())?;
         let path = resolved_path.as_path();
@@ -898,18 +759,6 @@ fn interface_scale(input: &str) -> Result<f64, String> {
         return Err("Interface scale must be between 0.1 and 3.".into());
     }
     Ok(scale)
-}
-
-fn channels(input: &str) -> impl Iterator<Item = &str> {
-    input
-        .split(|ch: char| ch == ',' || ch.is_whitespace())
-        .filter(|part| !part.is_empty())
-}
-
-fn channel_name(value: &Value) -> Option<&str> {
-    value
-        .as_str()
-        .or_else(|| value.as_inline_table()?.get("name")?.as_str())
 }
 
 fn string_at(item: Option<&Item>) -> String {
@@ -1027,6 +876,28 @@ fn preserve_keyring_references(network: &mut dyn TableLike, name: &str) {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn prepared_save_uses_its_validated_snapshot_and_original_source() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("config.toml");
+        std::fs::write(&path, "# original\n").unwrap();
+        let mut draft = Settings::parse("# original\n".into()).unwrap();
+        draft.appearance.font_size = "15".into();
+        let prepared = draft.prepare().unwrap();
+        draft.appearance.font_size = "0".into();
+        assert!(draft.render().is_err());
+        let saved = prepared.save_to(&path).unwrap();
+        let parsed: toml::Value = toml::from_str(&saved).unwrap();
+        assert_eq!(parsed["font"]["size"].as_integer(), Some(15));
+        assert_eq!(
+            std::fs::read_to_string(
+                path.with_extension("toml.settings-backup")
+            )
+            .unwrap(),
+            "# original\n"
+        );
+    }
+
+    #[test]
     fn every_font_setting_is_live_but_startup_options_still_request_restart() {
         let mut draft = super::Settings::parse(String::new()).unwrap();
         draft.appearance.font_family = "Georgia".into();
@@ -1113,13 +984,13 @@ mod tests {
     fn network_edits_and_renames_preserve_entry_comments() {
         let source = "[servers]\n# First network description\n'one' = { server = 'irc.one.test', nickname = 'test' } # one suffix\n# Unrelated network description\n\"two\" = { server = 'irc.two.test', nickname = 'test' } # two suffix\n";
         let mut settings = Settings::parse(source.into()).unwrap();
-        settings.networks[0].autoconnect = false;
+        settings.networks[0].connection.autoconnect = false;
         let rendered = settings.render().unwrap();
         assert!(rendered.contains("# First network description\n'one' ="));
         assert!(rendered.contains("# one suffix"));
         assert!(rendered.contains("# Unrelated network description\n\"two\" = { server = 'irc.two.test', nickname = 'test' } # two suffix"));
 
-        settings.networks[0].name = "work.network".into();
+        settings.networks[0].connection.name = "work.network".into();
         let rendered = settings.render().unwrap();
         assert!(
             rendered.find("\"work.network\" =").unwrap()
@@ -1173,7 +1044,7 @@ password_keyring = true
                 .unwrap();
         }
         let mut settings = Settings::parse(source.into()).unwrap();
-        settings.networks[0].name = "Renamed".into();
+        settings.networks[0].connection.name = "Renamed".into();
         let rendered = settings.render().unwrap();
         let document = rendered.parse::<DocumentMut>().unwrap();
         let network = &document["servers"]["Renamed"];
@@ -1230,7 +1101,7 @@ password_keyring = true
         assert_eq!(server.channel_keys["#private"], "in-memory-test-secret");
         // Saving another rename keeps the original explicit credential IDs.
         let mut settings = Settings::parse(rendered).unwrap();
-        settings.networks[0].name = "Renamed again".into();
+        settings.networks[0].connection.name = "Renamed again".into();
         let rendered = settings.render().unwrap();
         assert!(rendered.contains("servers.Old.Network.password"));
         assert!(!rendered.contains("servers.Renamed.password"));
@@ -1240,7 +1111,7 @@ password_keyring = true
     fn inline_network_rename_preserves_socks_proxy_and_explicit_keyring_ids() {
         let source = "servers = { old = { server = 'irc.example.test', nickname = 'test', password_keyring = false, nick_password_keyring = 'custom.nick', proxy = { socks5 = { host = '127.0.0.1', port = 1080, username = 'test', password_keyring = true } } } }\n";
         let mut settings = Settings::parse(source.into()).unwrap();
-        settings.networks[0].name = "new".into();
+        settings.networks[0].connection.name = "new".into();
         let rendered = settings.render().unwrap();
         let document = rendered.parse::<DocumentMut>().unwrap();
         let network = &document["servers"]["new"];
@@ -1258,8 +1129,16 @@ password_keyring = true
     #[test]
     fn rename_and_channel_edit_preserve_nested_options_and_mute() {
         let mut settings = Settings::parse(SOURCE.into()).unwrap();
-        settings.networks[0].name = "work.network".into();
-        settings.networks[0].channels = "#halloy, #new".into();
+        settings.networks[0].connection.name = "work.network".into();
+        let extra = &mut settings.networks[0].extra;
+        let channels = extra
+            .collections
+            .iter()
+            .position(|c| c.kind == remaining_networks::Rows::Channels)
+            .unwrap();
+        let rust = extra.collections[channels].entries[1].path.clone();
+        extra.remove(&rust).unwrap();
+        extra.add(channels, "#new").unwrap();
         let result = settings.render().unwrap();
         let doc = result.parse::<DocumentMut>().unwrap();
         assert!(doc["servers"].get("libera").is_none());
@@ -1272,22 +1151,20 @@ password_keyring = true
     }
 
     #[test]
-    fn validates_duplicates_ports_and_missing_authentication() {
+    fn validates_duplicate_network_names_and_ports() {
         let mut settings = Settings::parse(SOURCE.into()).unwrap();
         settings.networks.push(settings.networks[0].clone());
         assert!(settings.render().unwrap_err().contains("already in use"));
         settings.networks.pop();
-        settings.networks[0].port = "65536".into();
+        settings.networks[0].connection.port = "65536".into();
         assert!(settings.render().unwrap_err().contains("port"));
-        settings.networks[0].port.clear();
-        settings.networks[0].authentication = Authentication::Sasl;
-        assert!(settings.render().unwrap_err().contains("password"));
+        settings.networks[0].connection.port.clear();
     }
 
     #[test]
     fn validation_identifies_the_field_until_its_value_is_corrected() {
         let mut settings = Settings::parse(SOURCE.into()).unwrap();
-        settings.networks[0].port = "65536".into();
+        settings.networks[0].connection.port = "65536".into();
         let error = settings.validation_error().unwrap();
         assert_eq!(
             error.target,
@@ -1297,7 +1174,7 @@ password_keyring = true
             }
         );
         assert_eq!(settings.render().unwrap_err(), error.message);
-        settings.networks[0].port.clear();
+        settings.networks[0].connection.port.clear();
         settings.appearance.font_size = "0".into();
         let error = settings.validation_error().unwrap();
         assert_eq!(error.target, ValidationTarget::Appearance("font_size"));
@@ -1322,7 +1199,7 @@ password_keyring = true
     fn inline_tables_and_nick_alias_are_editable() {
         let mut settings = Settings::parse("font = { size = 13 }\nservers = { test = { server = 'localhost', nick = 'user' } }\n".into()).unwrap();
         settings.appearance.font_size = "15".into();
-        settings.networks[0].nickname = "other".into();
+        settings.networks[0].connection.nickname = "other".into();
         let result = settings.render().unwrap();
         Config::validate(&result).unwrap();
         let doc = result.parse::<DocumentMut>().unwrap();
@@ -1338,11 +1215,48 @@ password_keyring = true
         )
         .unwrap();
         let mut network = Network::new("new.network".into());
-        network.server = "irc.example.com".into();
-        network.nickname = "new_user".into();
-        network.autoconnect = false;
-        network.authentication = Authentication::Sasl;
-        network.password = "password with \"quotes\"".into();
+        network.connection.server = "irc.example.com".into();
+        network.connection.nickname = "new_user".into();
+        network.connection.autoconnect = false;
+        let sasl = network
+            .extra
+            .selectors
+            .iter()
+            .position(|s| s.label == "SASL method")
+            .unwrap();
+        network.extra.select(sasl, "plain").unwrap();
+        let keyring = network
+            .extra
+            .fields
+            .iter()
+            .position(|f| {
+                f.path
+                    == vec![
+                        remaining_networks::Part::Key("sasl".into()),
+                        remaining_networks::Part::Key("plain".into()),
+                        remaining_networks::Part::Key(
+                            "password_keyring".into(),
+                        ),
+                    ]
+            })
+            .unwrap();
+        network.extra.edit(keyring, None);
+        let password = network
+            .extra
+            .fields
+            .iter()
+            .position(|f| {
+                f.kind == remaining_networks::Kind::Secret
+                    && f.path.last()
+                        == Some(&remaining_networks::Part::Key(
+                            "password".into(),
+                        ))
+                    && f.path.len() == 3
+            })
+            .unwrap();
+        network
+            .extra
+            .edit(password, Some("password with \"quotes\"".into()));
         settings.networks = vec![network];
         let result = settings.render().unwrap();
         let doc = result.parse::<DocumentMut>().unwrap();
@@ -1388,11 +1302,21 @@ password_keyring = true
     #[test]
     fn switching_authentication_clears_conflicting_credentials() {
         let mut settings = Settings::parse(SOURCE.into()).unwrap();
-        settings.networks[0].authentication = Authentication::Sasl;
-        settings.networks[0].password = "example".into();
+        let extra = &mut settings.networks[0].extra;
+        let sasl = extra
+            .selectors
+            .iter()
+            .position(|s| s.label == "SASL method")
+            .unwrap();
+        extra.select(sasl, "plain").unwrap();
         let result = settings.render().unwrap();
         assert!(!result.contains("sasl.external"));
-        assert!(result.contains("[servers.libera.sasl.plain]"));
+        let parsed: toml::Value = toml::from_str(&result).unwrap();
+        assert_eq!(
+            parsed["servers"]["libera"]["sasl"]["plain"]["password_keyring"]
+                .as_bool(),
+            Some(true)
+        );
         assert!(result.contains("password_command = \"get-secret\""));
     }
 
@@ -1433,13 +1357,16 @@ password_keyring = true
         use remaining_networks::Part;
         let source = "# keep this comment\ntheme = 'ferra'\n[servers.\"qa.net\"]\nserver='127.0.0.1'\nnickname='qa'\nautoconnect=false\npassword_keyring=true # reference only\n";
         let mut settings = Settings::parse(source.into()).unwrap();
-        let username = settings.network_extras[0]
+        let username = settings.networks[0]
+            .extra
             .fields
             .iter()
             .position(|field| field.path == vec![Part::Key("username".into())])
             .unwrap();
-        settings.network_extras[0].edit(username, Some("new-user".into()));
-        settings.networks[0].name = "renamed.net".into();
+        settings.networks[0]
+            .extra
+            .edit(username, Some("new-user".into()));
+        settings.networks[0].connection.name = "renamed.net".into();
         let tooltips = settings
             .general
             .fields
@@ -1485,9 +1412,9 @@ password_keyring = true
         assert!(
             Settings::parse(result)
                 .unwrap()
-                .network_extras
+                .networks
                 .iter()
-                .all(|extra| !extra.is_dirty())
+                .all(|network| !network.extra.is_dirty())
         );
     }
 

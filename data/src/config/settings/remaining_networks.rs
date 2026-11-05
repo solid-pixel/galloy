@@ -302,6 +302,9 @@ impl Draft {
         !self.patches.is_empty() || self.fields.iter().any(Field::is_edited)
     }
     pub fn validation_error(&self) -> Option<ValidationError> {
+        if !self.is_dirty() {
+            return None;
+        }
         let mut candidate = self.working.clone();
         for field in self.fields.iter().filter(|f| f.edited) {
             let parsed = match field.parsed() {

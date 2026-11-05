@@ -1236,7 +1236,24 @@ impl Preferences {
                 let value = lookup(&root, &write_path)
                     .cloned()
                     .or(projected)
-                    .or_else(|| literal(spec.default));
+                    .or_else(|| {
+                        // A present scrollbar table uses Scrollbar::default;
+                        // an absent one inherits Nicklist's hidden scrollbar.
+                        if spec.path
+                            == "buffer.channel.nicklist.scrollbar.hidden"
+                            && lookup(
+                                &root,
+                                "buffer.channel.nicklist.scrollbar",
+                            )
+                            .is_some()
+                        {
+                            Some(toml::Value::Boolean(
+                                super::super::Scrollbar::default().hidden,
+                            ))
+                        } else {
+                            literal(spec.default)
+                        }
+                    });
                 let value = match spec.kind {
                     Kind::Text => value
                         .as_ref()
@@ -1348,6 +1365,23 @@ impl Preferences {
                         value(if mode == "dot" { "dot" } else { "none" }),
                     );
                     parent.insert(part, Item::Table(table));
+                }
+                if part == "scrollbar"
+                    && field
+                        .write_path
+                        .starts_with("buffer.channel.nicklist.scrollbar.")
+                    && !parent.contains_key(part)
+                {
+                    let mut scrollbar = Table::new();
+                    scrollbar.insert(
+                        "hidden",
+                        value(
+                            super::super::buffer::channel::Nicklist::default()
+                                .scrollbar
+                                .hidden,
+                        ),
+                    );
+                    parent.insert(part, Item::Table(scrollbar));
                 }
                 parent = child_table(parent, part)?;
             }
@@ -1462,6 +1496,55 @@ mod tests {
             .find(|field| field.spec.path == path)
             .unwrap()
             .value = value.into();
+    }
+
+    #[test]
+    fn user_list_scrollbar_width_preserves_effective_visibility() {
+        for (source, hidden) in [
+            ("", true),
+            ("[buffer.channel.nicklist.scrollbar]\nwidth=5\n", false),
+            (
+                "[buffer.channel.nicklist.scrollbar]\nhidden=true # keep\n",
+                true,
+            ),
+            ("buffer.channel.nicklist.scrollbar={hidden=false}\n", false),
+        ] {
+            let mut settings =
+                super::super::Settings::parse(source.into()).unwrap();
+            let visibility = settings
+                .preferences
+                .fields
+                .iter()
+                .find(|f| f.spec.path.ends_with("nicklist.scrollbar.hidden"))
+                .unwrap();
+            assert_eq!(visibility.value, hidden.to_string());
+            settings
+                .preferences
+                .fields
+                .iter_mut()
+                .find(|f| f.spec.path.ends_with("nicklist.scrollbar.width"))
+                .unwrap()
+                .value = "6".into();
+            let rendered = settings.render().unwrap();
+            let parsed: toml::Value = toml::from_str(&rendered).unwrap();
+            let buffer: crate::config::Buffer =
+                parsed["buffer"].clone().try_into().unwrap();
+            assert_eq!(buffer.channel.nicklist.scrollbar.hidden, hidden);
+            let reopened = super::super::Settings::parse(rendered).unwrap();
+            assert_eq!(
+                reopened
+                    .preferences
+                    .fields
+                    .iter()
+                    .find(|f| f
+                        .spec
+                        .path
+                        .ends_with("nicklist.scrollbar.hidden"))
+                    .unwrap()
+                    .value,
+                hidden.to_string()
+            );
+        }
     }
 
     #[test]

@@ -39,6 +39,23 @@ impl Default for Theme {
 }
 
 impl Theme {
+    /// Decode current themes while rejecting the legacy named-color schema.
+    pub(crate) fn from_toml(name: String, source: &str) -> Option<Self> {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum File {
+            Legacy {
+                #[serde(rename = "name")]
+                _name: String,
+            },
+            Current(Styles),
+        }
+        match toml::from_str(source).ok()? {
+            File::Current(styles) => Some(Self::new(name, styles)),
+            File::Legacy { .. } => None,
+        }
+    }
+
     pub fn new(name: String, styles: Styles) -> Self {
         Theme { name, styles }
     }

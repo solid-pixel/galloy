@@ -92,9 +92,9 @@ async fn fetch_from(
 }
 
 pub fn installed(directory: &Path) -> Vec<Theme> {
-    let mut themes = vec![Theme::default()];
+    let mut themes = vec![];
     let Ok(files) = std::fs::read_dir(directory) else {
-        return themes;
+        return vec![Theme::default()];
     };
     for entry in files.flatten() {
         let path = entry.path();
@@ -107,19 +107,38 @@ pub fn installed(directory: &Path) -> Vec<Theme> {
         let Ok(source) = std::fs::read_to_string(&path) else {
             continue;
         };
-        // V1 themes contain a top-level name and use a different color schema.
-        if toml::from_str::<toml::Value>(&source)
-            .is_ok_and(|value| value.get("name").is_some())
-        {
-            continue;
+        if let Some(theme) = Theme::from_toml(name.to_owned(), &source) {
+            themes.push(theme);
         }
-        if let Ok(styles) = toml::from_str::<Styles>(&source) {
-            themes.retain(|theme| !theme.name.eq_ignore_ascii_case(name));
-            themes.push(Theme::new(name.to_owned(), styles));
-        }
+    }
+    if !themes
+        .iter()
+        .any(|theme| theme.name.eq_ignore_ascii_case(&Theme::default().name))
+    {
+        themes.push(Theme::default());
     }
     themes.sort_by_key(|theme| theme.name.to_lowercase());
     themes
+}
+
+/// Exact filesystem names take priority. A case-insensitive fallback is safe
+/// only when it identifies one installed file.
+pub fn matching_name<'a>(
+    names: impl Iterator<Item = &'a str>,
+    wanted: &str,
+) -> Option<&'a str> {
+    let mut fallback = None;
+    let mut ambiguous = false;
+    for name in names {
+        if name == wanted {
+            return Some(name);
+        }
+        if name.eq_ignore_ascii_case(wanted) {
+            ambiguous |= fallback.is_some();
+            fallback = Some(name);
+        }
+    }
+    if ambiguous { None } else { fallback }
 }
 
 pub fn install_path(
@@ -184,7 +203,7 @@ fn parse(bytes: &[u8]) -> Result<Vec<Entry>, String> {
             let Ok(styles) = serde_json::from_value::<Styles>(colors) else {
                 continue;
             };
-            if names.insert(name.to_lowercase()) {
+            if names.insert(name.to_owned()) {
                 entries.push(Entry {
                     id,
                     name: name.to_owned(),
@@ -293,6 +312,44 @@ mod tests {
         assert_eq!(
             origin.accept().unwrap_err().kind(),
             std::io::ErrorKind::WouldBlock
+        );
+    }
+
+    #[test]
+    fn filename_lookup_preserves_distinct_case_sensitive_theme_names() {
+        let names = ["Nord", "nord"];
+        assert_eq!(matching_name(names.into_iter(), "Nord"), Some("Nord"));
+        assert_eq!(matching_name(names.into_iter(), "nord"), Some("nord"));
+        assert_eq!(matching_name(names.into_iter(), "NORD"), None);
+        assert_eq!(matching_name(["Nord"].into_iter(), "nord"), Some("Nord"));
+    }
+
+    #[test]
+    fn installed_loader_keeps_each_filename_and_skips_legacy_and_invalid_files()
+    {
+        let directory = tempfile::tempdir().unwrap();
+        let content = include_str!("../../../assets/themes/ferra.toml");
+        for name in ["Nord", "nord", "Other"] {
+            std::fs::write(
+                directory.path().join(format!("{name}.toml")),
+                content,
+            )
+            .unwrap();
+        }
+        std::fs::write(directory.path().join("legacy.toml"), "name='legacy'\n")
+            .unwrap();
+        std::fs::write(directory.path().join("invalid.toml"), "broken = [")
+            .unwrap();
+        let themes = installed(directory.path());
+        // The number of directory entries accounts for case-insensitive volumes;
+        // on Linux/case-sensitive volumes both Nord and nord must survive.
+        let files = std::fs::read_dir(directory.path()).unwrap().count();
+        assert_eq!(themes.len(), files - 2 + 1);
+        assert!(themes.iter().any(|t| t.name == "Other"));
+        assert!(
+            !themes
+                .iter()
+                .any(|t| ["legacy", "invalid"].contains(&t.name.as_str()))
         );
     }
 

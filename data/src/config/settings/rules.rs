@@ -873,6 +873,9 @@ impl Rules {
         &self,
         source: &DocumentMut,
     ) -> Option<(usize, usize, String)> {
+        if !self.is_dirty() {
+            return None;
+        }
         let mut document = source.clone();
         if let Err(e) = self.render_into(&mut document) {
             return Some(e);

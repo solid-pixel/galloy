@@ -993,6 +993,9 @@ impl Draft {
         }
     }
     pub fn validate(&self, source: &DocumentMut) -> Result<(), Error> {
+        if !self.is_dirty() {
+            return Ok(());
+        }
         let mut copy = source.clone();
         self.render_into(&mut copy)?;
         // No commands, credentials, or network access are used by validation.
@@ -1007,6 +1010,18 @@ impl Draft {
     }
     pub fn render_into(&self, document: &mut DocumentMut) -> Result<(), Error> {
         // Rename validation is performed together, allowing swaps.
+        // Retained non-command entries still occupy their literal TOML keys.
+        // They do not participate in runtime command-name normalization.
+        let reserved = self
+            .aliases
+            .iter()
+            .filter(|alias| {
+                !alias.removed
+                    && !alias.changed()
+                    && !alias.command.trim().starts_with('/')
+            })
+            .map(|alias| alias.name.as_str())
+            .collect::<std::collections::HashSet<_>>();
         let mut names = std::collections::HashSet::new();
         for (index, alias) in
             self.aliases.iter().enumerate().filter(|(_, a)| !a.removed)
@@ -1018,6 +1033,7 @@ impl Draft {
             }
             let name = alias.normalized_name();
             if name.is_empty()
+                || reserved.contains(alias.name.as_str())
                 || (alias.changed() && name.chars().any(char::is_whitespace))
                 || !names.insert(name)
             {
@@ -1332,6 +1348,57 @@ mod tests {
         crate::Config::validate(&source.to_string()).unwrap();
         source.to_string()
     }
+    #[test]
+    fn ignored_alias_casing_does_not_change_an_existing_active_command() {
+        let source = "[buffer.commands.aliases]\nFoo='ignored body'\nfoo='/echo active'\n";
+        let doc = document(source);
+        let mut draft = Draft::parse(&doc).unwrap();
+        let field = draft
+            .fields
+            .iter()
+            .position(|f| f.path == "tooltips")
+            .unwrap();
+        draft.edit(field, "\"none\"".into());
+        let mut next = doc;
+        draft.render_into(&mut next).unwrap();
+        assert_eq!(
+            next["buffer"]["commands"]["aliases"]["foo"].as_str(),
+            Some("/echo active")
+        );
+        assert_eq!(
+            next["buffer"]["commands"]["aliases"]["Foo"].as_str(),
+            Some("ignored body")
+        );
+    }
+
+    #[test]
+    fn alias_rename_cannot_replace_a_retained_ignored_entry() {
+        for source in [
+            "[buffer.commands.aliases]\nfoo='ignored body'\nbar='/echo active'\n",
+            "[buffer.commands.aliases]\nbar='/echo active'\nfoo='ignored body'\n",
+        ] {
+            let doc = document(source);
+            let mut draft = Draft::parse(&doc).unwrap();
+            let index =
+                draft.aliases.iter().position(|a| a.name == "bar").unwrap();
+            draft.aliases[index].name = "foo".into();
+            let error = draft.render_into(&mut doc.clone()).unwrap_err();
+            assert_eq!(error.target, Target::AliasName(index));
+            draft
+                .aliases
+                .iter_mut()
+                .find(|a| a.original_name.as_deref() == Some("foo"))
+                .unwrap()
+                .removed = true;
+            let mut next = doc;
+            draft.render_into(&mut next).unwrap();
+            assert_eq!(
+                next["buffer"]["commands"]["aliases"]["foo"].as_str(),
+                Some("/echo active")
+            );
+        }
+    }
+
     #[test]
     fn scalar_choices_and_defaults_match_the_runtime_config() {
         for spec in schema() {

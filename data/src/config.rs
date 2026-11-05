@@ -34,7 +34,6 @@ pub use self::runtime::Runtime;
 pub use self::server::Server;
 pub use self::sidebar::Sidebar;
 pub use self::window::Window;
-use crate::appearance::theme::Styles;
 use crate::appearance::{self, Appearance};
 use crate::audio::{self};
 use crate::config::metadata::Metadata;
@@ -653,26 +652,12 @@ impl Config {
     ) -> Result<Appearance, Error> {
         use tokio::fs;
 
-        #[derive(Deserialize)]
-        #[serde(untagged)]
-        pub enum Data {
-            V1 {
-                #[serde(rename = "name")]
-                _name: String,
-            },
-            V2(Styles),
-        }
-
         let read_entry = |entry: fs::DirEntry| async move {
             let content = fs::read_to_string(entry.path()).await.ok()?;
 
-            let data: Data = toml::from_str(content.as_ref()).ok()?;
             let name = entry.path().file_stem()?.to_string_lossy().to_string();
 
-            match data {
-                Data::V1 { .. } => None,
-                Data::V2(colors) => Some(Theme::new(name, colors)),
-            }
+            Theme::from_toml(name, &content)
         };
 
         let mut all = vec![];

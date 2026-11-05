@@ -1518,26 +1518,7 @@ impl StringList {
         let source = self
             .wrapper
             .map_or(previous, |key| previous.and_then(|item| item.get(key)));
-        let mut array = Array::new();
-        // Retain value decorations for untouched list entries, even after moving.
-        let mut used = vec![];
-        for entry in &self.entries {
-            let original = source.and_then(Item::as_array).and_then(|old| {
-                old.iter()
-                    .enumerate()
-                    .find(|(index, value)| {
-                        !used.contains(index)
-                            && value.as_str() == Some(entry.as_str())
-                    })
-                    .map(|(index, value)| {
-                        used.push(index);
-                        value.clone()
-                    })
-            });
-            array.push_formatted(
-                original.unwrap_or_else(|| Value::from(entry.clone())),
-            );
-        }
+        let next = decorated_list(&self.entries, source);
         let item = if let Some(key) = self.wrapper {
             let mut item = previous
                 .filter(|item| item.is_table_like())
@@ -1545,10 +1526,10 @@ impl StringList {
                 .unwrap_or_else(|| {
                     Item::Value(Value::InlineTable(InlineTable::new()))
                 });
-            set(item.as_table_like_mut().unwrap(), key, value(array));
+            set(item.as_table_like_mut().unwrap(), key, next);
             item
         } else {
-            value(array)
+            next
         };
         write_at(document, self.path, item)
     }
@@ -2393,12 +2374,21 @@ impl DisplayEditors {
                     .insert_formatted(table.key(key).unwrap(), item.clone());
             }
         }
-        let mut editor = Self::parse(&DocumentMut::new())?;
-        editor.lists.clear();
-        editor.filters.clear();
-        editor.opacities.clear();
-        editor.repeats.clear();
-        editor.optional_text.clear();
+        let mut editor = Self {
+            lists: vec![],
+            filters: vec![],
+            opacities: vec![],
+            repeats: vec![],
+            optional_text: vec![],
+            colors: vec![],
+            original_colors: vec![],
+            themes: ThemeLists::parse(&DocumentMut::new()),
+            backlog: BacklogLabel {
+                show: true,
+                text: "backlog".into(),
+                original: (true, "backlog".into()),
+            },
+        };
         for side in ["include", "exclude"] {
             editor.filters.push(Filter::parse(
                 &document,
@@ -2726,6 +2716,9 @@ impl DisplayEditors {
             crate::Config::validate(&document.to_string())
                 .map_err(|error| error.to_string())
         }
+        if !self.is_dirty() {
+            return None;
+        }
         for (index, list) in self
             .lists
             .iter()
@@ -3047,7 +3040,10 @@ impl OptionalText {
 }
 
 fn decorated_list(entries: &[String], source: Option<&Item>) -> Item {
-    let mut array = Array::new();
+    // Clearing a clone retains the array's trailing comments and comma style.
+    let mut array =
+        source.and_then(Item::as_array).cloned().unwrap_or_default();
+    array.clear();
     let mut used = vec![];
     for entry in entries {
         let old = source.and_then(Item::as_array).and_then(|array| {
@@ -3109,6 +3105,45 @@ mod tests {
             "Ignored settings: {ignored:?}\n{document}"
         );
     }
+    #[test]
+    fn edited_lists_keep_array_comments_through_add_remove_and_reorder() {
+        let source = "theme = [\n 'ferra',\n # theme explanation\n] # theme suffix\n[display]\nnickname = [\n 'display-name',\n # metadata explanation\n] # metadata suffix\n";
+        let result = render(source, |draft| {
+            draft.themes.random.push("other".into());
+            draft
+                .lists
+                .iter_mut()
+                .find(|f| f.path == "display.nickname")
+                .unwrap()
+                .entries
+                .push("pronouns".into());
+        });
+        for comment in [
+            "# theme explanation",
+            "# theme suffix",
+            "# metadata explanation",
+            "# metadata suffix",
+        ] {
+            assert_eq!(result.matches(comment).count(), 1, "{result}");
+        }
+        let result = render(&result, |draft| {
+            draft.themes.random.swap(0, 1);
+            draft.themes.random.pop();
+            let list = draft
+                .lists
+                .iter_mut()
+                .find(|f| f.path == "display.nickname")
+                .unwrap();
+            list.entries.swap(0, 1);
+            list.entries.pop();
+        });
+        assert!(result.contains("# theme explanation"));
+        assert!(result.contains("# metadata explanation"));
+        let parsed: toml::Value = toml::from_str(&result).unwrap();
+        assert_eq!(parsed["theme"][0].as_str(), Some("other"));
+        assert_eq!(parsed["display"]["nickname"][0].as_str(), Some("pronouns"));
+    }
+
     #[test]
     fn new_schema_choices_defaults_and_paths_are_runtime_supported() {
         let mut paths = std::collections::BTreeSet::new();

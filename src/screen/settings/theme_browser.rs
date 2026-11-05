@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use data::Config;
 use data::appearance::catalog::{self, Entry};
@@ -35,14 +36,23 @@ pub enum Target {
     Dark,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RequestId(u64);
+impl RequestId {
+    fn new() -> Self {
+        static NEXT: AtomicU64 = AtomicU64::new(0);
+        Self(NEXT.fetch_add(1, Ordering::Relaxed))
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum Message {
-    Loaded(Result<Vec<Entry>, String>),
+    Loaded(RequestId, Result<Vec<Entry>, String>),
     Search(String),
     Filter(Filter),
     Select(u64),
     Download,
-    Downloaded(u64, Result<data::Theme, String>),
+    Downloaded(RequestId, u64, Result<data::Theme, String>),
     Use(Target),
     Back,
     Retry,
@@ -57,6 +67,9 @@ pub enum Event {
 }
 
 pub struct Browser {
+    id: RequestId,
+    load_id: RequestId,
+    fetch: Option<iced::task::Handle>,
     entries: Result<Vec<Entry>, String>,
     loading: bool,
     query: String,
@@ -69,14 +82,31 @@ pub struct Browser {
     system_mode: bool,
 }
 
+impl Drop for Browser {
+    fn drop(&mut self) {
+        if let Some(fetch) = &self.fetch {
+            fetch.abort();
+        }
+    }
+}
+
 impl Browser {
     pub fn open(
         installed: &[data::Theme],
         mode: ThemeMode,
         proxy: Option<data::config::Proxy>,
     ) -> (Self, Task<Message>) {
+        let id = RequestId::new();
+        let (task, handle) =
+            Task::perform(catalog::fetch(proxy), move |result| {
+                Message::Loaded(id, result)
+            })
+            .abortable();
         (
             Self {
+                id,
+                load_id: id,
+                fetch: Some(handle),
                 entries: Ok(vec![]),
                 loading: true,
                 query: String::new(),
@@ -84,22 +114,29 @@ impl Browser {
                 selected: None,
                 installed: installed
                     .iter()
-                    .map(|theme| theme.name.to_lowercase())
+                    .map(|theme| theme.name.clone())
                     .collect(),
                 downloading: None,
                 notice: None,
                 error: None,
                 system_mode: mode == ThemeMode::System,
             },
-            Task::perform(catalog::fetch(proxy), Message::Loaded),
+            task,
         )
     }
 
+    #[cfg(test)]
+    pub(super) fn load_id(&self) -> RequestId {
+        self.load_id
+    }
+    #[cfg(test)]
+    pub(super) fn id(&self) -> RequestId {
+        self.id
+    }
+
     pub fn refresh_installed(&mut self, themes: &[data::Theme]) {
-        self.installed = themes
-            .iter()
-            .map(|theme| theme.name.to_lowercase())
-            .collect();
+        self.installed =
+            themes.iter().map(|theme| theme.name.clone()).collect();
     }
 
     fn matches(&self, entry: &Entry) -> bool {
@@ -131,9 +168,13 @@ impl Browser {
     }
 
     fn is_installed(&self, entry: &Entry) -> bool {
-        entry
-            .file_stem()
-            .is_ok_and(|name| self.installed.contains(&name.to_lowercase()))
+        entry.file_stem().is_ok_and(|name| {
+            catalog::matching_name(
+                self.installed.iter().map(String::as_str),
+                &name,
+            )
+            .is_some()
+        })
     }
 
     pub fn update(
@@ -142,7 +183,11 @@ impl Browser {
         proxy: Option<data::config::Proxy>,
     ) -> (Task<Message>, Option<Event>) {
         match message {
-            Message::Loaded(result) => {
+            Message::Loaded(id, result) => {
+                if id != self.load_id {
+                    return (Task::none(), None);
+                }
+                self.fetch = None;
                 self.loading = false;
                 self.entries = result;
                 self.retain_selection();
@@ -177,11 +222,19 @@ impl Browser {
                 }
             }
             Message::Retry => {
+                let id = RequestId::new();
+                let (task, handle) =
+                    Task::perform(catalog::fetch(proxy), move |result| {
+                        Message::Loaded(id, result)
+                    })
+                    .abortable();
+                self.load_id = id;
+                if let Some(previous) = self.fetch.take() {
+                    previous.abort();
+                }
+                self.fetch = Some(handle);
                 self.loading = true;
-                return (
-                    Task::perform(catalog::fetch(proxy), Message::Loaded),
-                    None,
-                );
+                return (task, None);
             }
             Message::Website => {
                 let _ = open_url::open(data::environment::THEME_WEBSITE);
@@ -191,8 +244,15 @@ impl Browser {
                 if let Some(entry) =
                     self.selected().filter(|entry| self.is_installed(entry))
                     && let Ok(name) = entry.file_stem()
+                    && let Some(name) = catalog::matching_name(
+                        self.installed.iter().map(String::as_str),
+                        &name,
+                    )
                 {
-                    return (Task::none(), Some(Event::Use(target, name)));
+                    return (
+                        Task::none(),
+                        Some(Event::Use(target, name.to_owned())),
+                    );
                 }
             }
             Message::Download => {
@@ -205,6 +265,7 @@ impl Browser {
                     .cloned()
                 {
                     let id = entry.id;
+                    let browser = self.id;
                     self.downloading = Some(id);
                     self.error = None;
                     self.notice = None;
@@ -218,20 +279,22 @@ impl Browser {
                                 .map_err(|error| error.to_string())
                                 .and_then(|result| result)
                             },
-                            move |result| Message::Downloaded(id, result),
+                            move |result| {
+                                Message::Downloaded(browser, id, result)
+                            },
                         ),
                         None,
                     );
                 }
             }
-            Message::Downloaded(id, result) => {
-                if self.downloading != Some(id) {
+            Message::Downloaded(browser, id, result) => {
+                if browser != self.id || self.downloading != Some(id) {
                     return (Task::none(), None);
                 }
                 self.downloading = None;
                 match result {
                     Ok(theme) => {
-                        self.installed.insert(theme.name.to_lowercase());
+                        self.installed.insert(theme.name.clone());
                         self.notice = Some(format!(
                             "{} downloaded. It is now available in Appearance.",
                             theme.name
@@ -455,4 +518,46 @@ fn success_text(theme: &crate::Theme) -> iced::widget::text::Style {
 }
 fn error_text(theme: &crate::Theme) -> iced::widget::text::Style {
     readable_text(theme, theme.styles().text.error.color)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn obsolete_fetches_cannot_replace_retry_or_new_browser_state() {
+        let (mut browser, _) = Browser::open(&[], ThemeMode::Single, None);
+        let first = browser.load_id;
+        let old_handle = browser.fetch.as_ref().unwrap().clone();
+        let _ = browser.update(Message::Retry, None);
+        assert!(old_handle.is_aborted());
+        let _ = browser
+            .update(Message::Loaded(first, Err("old error".into())), None);
+        assert!(browser.loading);
+        let current = browser.load_id;
+        let _ = browser.update(Message::Loaded(current, Ok(vec![])), None);
+        assert!(!browser.loading);
+        assert!(browser.entries.is_ok());
+        let (mut reopened, _) = Browser::open(&[], ThemeMode::Single, None);
+        let _ = reopened
+            .update(Message::Loaded(current, Err("old session".into())), None);
+        assert!(reopened.loading);
+    }
+
+    #[test]
+    fn dropping_browser_cancels_fetch_and_old_downloads_are_ignored() {
+        let (browser, _) = Browser::open(&[], ThemeMode::Single, None);
+        let id = browser.id;
+        let handle = browser.fetch.as_ref().unwrap().clone();
+        drop(browser);
+        assert!(handle.is_aborted());
+        let (mut reopened, _) = Browser::open(&[], ThemeMode::Single, None);
+        reopened.downloading = Some(7);
+        let _ = reopened.update(
+            Message::Downloaded(id, 7, Ok(data::Theme::default())),
+            None,
+        );
+        assert_eq!(reopened.downloading, Some(7));
+        assert!(reopened.installed.is_empty());
+    }
 }

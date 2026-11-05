@@ -4,9 +4,10 @@ use data::config::settings::preferences::{Area, Kind};
 use data::config::settings::remaining_general::{
     Draft, Editor, Error, Field, Mode, Target, same_literal,
 };
-use iced::widget::{column, container, row, rule, scrollable};
+use iced::widget::{column, container, row, scrollable};
 use iced::{Alignment, Length};
 
+use super::form::{group_rows as grouped, labelled};
 use super::keyboard::{checkbox, pick_list};
 use super::{action, style};
 use crate::widget::{Element, text, text_input};
@@ -344,38 +345,6 @@ fn error_text(error: Option<&Error>) -> Element<'static, Message> {
         .style(theme::text::error)
         .into()
 }
-fn labelled<'a>(
-    label: &'a str,
-    control: Element<'a, Message>,
-    width: f32,
-) -> Element<'a, Message> {
-    row![
-        text(label).width(160),
-        container(control).width(Length::Fill.max(width))
-    ]
-    .spacing(12)
-    .align_y(Alignment::Center)
-    .width(Length::Fill)
-    .into()
-}
-fn grouped(rows: Vec<Element<'_, Message>>) -> Element<'_, Message> {
-    let mut content = column![].spacing(0);
-    for (index, element) in rows.into_iter().enumerate() {
-        if index > 0 {
-            content = content.push(
-                container(rule::horizontal(1))
-                    .padding(iced::padding::horizontal(12)),
-            );
-        }
-        content = content
-            .push(container(element).padding([8, 12]).width(Length::Fill));
-    }
-    container(content)
-        .style(style::pane)
-        .width(Length::Fill)
-        .into()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -35,17 +35,21 @@ rejected by the actual parser.
 
 ## Model inventory
 
-The checked entries below include containers and the runtime projections described
-above. Enum alternatives are represented by their corresponding choice or mode
-control, including booleans, optional values, scalar/list forms and legacy aliases.
+The entries below map user configuration models to the forms described above.
+Containers and the explicitly identified runtime projections are included for
+navigation. Enum alternatives use choice or mode controls, including booleans,
+optional values, scalar/list forms and legacy aliases. Internal parser structures
+and error-report fields are excluded from this inventory.
+
+Use the regression tests and native checks below to assess behavior as well as
+field presence. Parser acceptance, inherited defaults, preservation, and reachable
+controls are separate checks.
 
 ### `data/src/config.rs`
 
 - [x] `Config`: `appearance`, `context_menu`, `servers`, `proxy`, `font`, `scale_factor`, `buffer`, `channel_monitor`, `pane`, `sidebar`, `keyboard`, `notifications`, `file_transfer`, `filehost`, `tooltips`, `window`, `preview`, `highlights`, `actions`, `ctcp`, `display`, `logs`, `platform_specific`, `runtime`, `check_for_update_on_launch`, `metadata`, `config_editor`.
 - [x] `Scrollbar`: `width`, `scroller_width`, `hidden`.
 - [x] `Font`: `family`, `code`, `stretch`, `size`, `line_height`, `weight`, `bold_weight`, `only_emojis_size`.
-- [x] `Configuration`: `logs`, `font`.
-- [x] `ParseError`: `message`, `details`, `line`.
 
 ### `data/src/config/keys.rs`
 
@@ -248,5 +252,33 @@ control, including booleans, optional values, scalar/list forms and legacy alias
 - [x] Random and separate light/dark theme lists; scalar themes and pending gallery themes.
 - [x] Cache unlimited/first-save modes and atomic optional DCC server settings.
 
-Verification details and native evidence are recorded in
-`.impeccable/review/remaining-settings-2026-10-29/` (local artifacts).
+## Maintained verification
+
+Behavioral regression tests live beside the owning code:
+
+- [Settings transaction](../../data/src/config/settings.rs): prepared saves,
+  external edits, backups, symlinks, network renames and keyring references.
+- [Scalar preferences](../../data/src/config/settings/preferences.rs): aliases,
+  schema acceptance, validation targets and inherited scrollbar visibility.
+- [Display editors](../../data/src/config/settings/remaining_display.rs): array
+  comments, theme lists, conditions and ordered color rules.
+- [General and commands](../../data/src/config/settings/remaining_general.rs):
+  alias collisions/swaps and default versus explicit values.
+- [Media](../../data/src/config/settings/remaining_media.rs) and
+  [networks](../../data/src/config/settings/remaining_networks.rs): tagged values,
+  credential references, validation and targeted document updates.
+- [Settings integration](../../src/screen/settings.rs) and
+  [theme browser](../../src/screen/settings/theme_browser.rs): confirmation
+  handling, request ownership, stale completions, focus and preview state.
+- [Theme catalog](../../data/src/appearance/catalog.rs): filename identities,
+  decoding, installation limits and local proxy transport fixtures.
+
+Run the workspace checks described in the [Settings guide](settings-gui.md#development).
+For native verification, use an isolated portable configuration with automatic
+connections and update checks disabled. Check ordinary and minimum window sizes,
+keyboard traversal, invalid inputs, Apply/Revert/Close, contrasting palettes,
+font changes, and theme previews across windows. Record the operating system,
+renderer, tested revision and any unavailable checks with the result.
+
+Release-specific evidence belongs with the release notes/artifacts; a local
+screenshot directory is not a portable verification record.
