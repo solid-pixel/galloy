@@ -256,21 +256,21 @@ controls are separate checks.
 
 Behavioral regression tests live beside the owning code:
 
-- [Settings transaction](../../data/src/config/settings.rs): prepared saves,
+- [Settings transaction](https://github.com/solid-pixel/galloy/blob/main/data/src/config/settings.rs): prepared saves,
   external edits, backups, symlinks, network renames and keyring references.
-- [Scalar preferences](../../data/src/config/settings/preferences.rs): aliases,
+- [Scalar preferences](https://github.com/solid-pixel/galloy/blob/main/data/src/config/settings/preferences.rs): aliases,
   schema acceptance, validation targets and inherited scrollbar visibility.
-- [Display editors](../../data/src/config/settings/remaining_display.rs): array
+- [Display editors](https://github.com/solid-pixel/galloy/blob/main/data/src/config/settings/remaining_display.rs): array
   comments, theme lists, conditions and ordered color rules.
-- [General and commands](../../data/src/config/settings/remaining_general.rs):
+- [General and commands](https://github.com/solid-pixel/galloy/blob/main/data/src/config/settings/remaining_general.rs):
   alias collisions/swaps and default versus explicit values.
-- [Media](../../data/src/config/settings/remaining_media.rs) and
-  [networks](../../data/src/config/settings/remaining_networks.rs): tagged values,
+- [Media](https://github.com/solid-pixel/galloy/blob/main/data/src/config/settings/remaining_media.rs) and
+  [networks](https://github.com/solid-pixel/galloy/blob/main/data/src/config/settings/remaining_networks.rs): tagged values,
   credential references, validation and targeted document updates.
-- [Settings integration](../../src/screen/settings.rs) and
-  [theme browser](../../src/screen/settings/theme_browser.rs): confirmation
+- [Settings integration](https://github.com/solid-pixel/galloy/blob/main/src/screen/settings.rs) and
+  [theme browser](https://github.com/solid-pixel/galloy/blob/main/src/screen/settings/theme_browser.rs): confirmation
   handling, request ownership, stale completions, focus and preview state.
-- [Theme catalog](../../data/src/appearance/catalog.rs): filename identities,
+- [Theme catalog](https://github.com/solid-pixel/galloy/blob/main/data/src/appearance/catalog.rs): filename identities,
   decoding, installation limits and local proxy transport fixtures.
 
 Run the workspace checks described in the [Settings guide](settings-gui.md#development).
